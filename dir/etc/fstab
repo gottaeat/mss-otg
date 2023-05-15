@@ -1,0 +1,5 @@
+/dev/arch/rootfs                   /              ext4 defaults,noatime                 0 1
+/dev/arch/stuff                    /mnt/mss/stuff ext4 rw,relatime,noatime,data=ordered 0 2
+/dev/vda1                          /boot          vfat defaults                         0 0
+/mnt/mss/stuff/techy-bits/home     /home/mss      auto defaults,nofail,nobootwait,bind  0 0
+/mnt/mss/stuff/techy-bits/swapfile none           swap sw                               0 0
