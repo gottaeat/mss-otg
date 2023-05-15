@@ -114,6 +114,12 @@ cp -vf \
  "${fdir}"/etc/vimrc            \
  /etc/
 
+cat << EOF >> /etc/fstab
+/dev/vda1 /boot vfat defaults 0 0
+EOF
+
+cat /etc/fstab | column -t > /tmp/fstab; mv /tmp/fstab /etc/fstab
+
 cp -vf "${fdir}"/etc/acpi/handler.sh  /etc/acpi/
 cp -vf "${fdir}"/etc/pulse/*          /etc/pulse/
 cp -vf "${fdir}"/etc/ssh/*            /etc/ssh/
