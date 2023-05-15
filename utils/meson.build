@@ -23,6 +23,7 @@ files_bin = [
  'bin/maimscrot',
  'bin/ossl',
  'bin/pkgup',
+ 'bin/setbright',
  'bin/setgov',
  'bin/setmon',
  'bin/setxkeeb',
@@ -30,7 +31,7 @@ files_bin = [
  'bin/suspendtodisk',
  'bin/syncboi',
  'bin/ttygrab',
- 'bin/weather.py',
+ 'bin/weather.py'
 ]
 
 files_etc = [
