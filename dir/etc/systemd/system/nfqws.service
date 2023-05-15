@@ -10,8 +10,8 @@ IgnoreSIGPIPE=no
 KillMode=none
 GuessMainPID=no
 RemainAfterExit=no
-ExecStart=/mss/etc/nfqws start
-ExecStop=/mss/etc/nfqws stop
+ExecStart=/mss/share/nfqws-handler start
+ExecStop=/mss/share/nfqws-handler stop
 
 [Install]
 WantedBy=multi-user.target
