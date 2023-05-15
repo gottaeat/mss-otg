@@ -120,9 +120,17 @@ EOF
 
 cat /etc/fstab | column -t > /tmp/fstab; mv /tmp/fstab /etc/fstab
 
+cat << EOF > /etc/ssh/banner
+
+ ╔──────────────────────╗
+ │ arch (192.168.255.2) │
+ ╚──────────────────────╝
+
+EOF
+
 cp -vf "${fdir}"/etc/acpi/handler.sh  /etc/acpi/
 cp -vf "${fdir}"/etc/pulse/*          /etc/pulse/
-cp -vf "${fdir}"/etc/ssh/*            /etc/ssh/
+cp -vf "${fdir}"/etc/ssh/sshd_config  /etc/ssh/
 cp -vf "${fdir}"/etc/sysctl.d/*       /etc/sysctl.d/
 cp -vf "${fdir}"/etc/systemd/system/* /etc/systemd/system/
 cp -vf "${fdir}"/etc/udev/rules.d/*   /etc/udev/rules.d/
@@ -201,8 +209,6 @@ iptables -A FORWARD -j DROP
 iptables-save -f /etc/iptables/iptables.rules
 
 # 2.2.5.1 > nfqws
-cd
-
 git clone --depth=1 https://github.com/bol-van/zapret
 cd  zapret/nfq/
 
