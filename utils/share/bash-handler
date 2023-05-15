@@ -1,0 +1,51 @@
+# 1 > set umask
+umask 022
+
+# 2 > append base to path
+append_path(){
+ case ":$PATH:" in
+  *:"$1":*)                   ;;
+  *) PATH="${PATH:+$PATH:}$1" ;;
+ esac
+}
+
+append_path '/mss/bin'
+append_path '/usr/local/sbin'
+append_path '/usr/local/bin'
+append_path '/usr/bin'
+export PATH
+
+# 2 > append under profile.d/
+if [ -d "/etc/profile.d" ]; then
+ for i in /etc/profile.d/*.sh; do
+  [ -r "${i}" ] && . "${i}"
+ done
+
+ unset i
+fi
+
+# 3 > unset vars
+unset TERMCAP MANPATH append_path
+
+# 4 > bash
+if [ ! -z "${BASH}" ]; then
+ if [ -r /usr/share/bash-completion/bash_completion ]; then
+  . /usr/share/bash-completion/bash_completion
+ fi
+
+ if [ $(id -u) -eq 0 ]
+  then export PS1="\[\033[1;34m\] \$? \[\033[1;37m\]\W\[\033[1;31m\]:\[\e[m\] "
+  else export PS1="\[\033[1;30m\] \$? \[\033[1;37m\]\W\[\033[1;31m\]:\[\e[m\] "
+ fi
+
+ export PS2=" \[\033[1;37m\]>\[\e[m\] "
+
+ shopt -s histappend
+ set -u
+ PROMPT_COMMAND="history -a; history -c; history -r"
+ HISTSIZE=1000
+
+ . /mss/etc/sourceme
+ . /mss/etc/sourceme-aliases
+ . /mss/etc/sourceme-build
+fi

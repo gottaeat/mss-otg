@@ -1,7 +1,6 @@
 # 1 > vars
 # 1.1 > path
-       PATH="${PATH}:/mss/bin"
-export PATH="${PATH}:/mnt/mss/stuff/techy-bits/bin"
+append_path '/mnt/mss/stuff/techy-bits/bin'
 
 # 1.2 > essential
 export   PAGER="less"

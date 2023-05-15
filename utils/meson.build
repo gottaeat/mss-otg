@@ -1,5 +1,5 @@
 project('utils',
- version: '61',
+ version: '62',
  license: 'GPL3',
  default_options: [
   'buildtype=plain',
@@ -11,35 +11,42 @@ project('utils',
 
 # 1 > files
 files_bin = [
- 'bin/0x0',
- 'bin/cb',
- 'bin/cblist',
- 'bin/colortest',
- 'bin/comptoggle',
- 'bin/dn',
- 'bin/ldir',
- 'bin/maimclip',
- 'bin/maimcrop',
- 'bin/maimscrot',
- 'bin/menuboi.sh',
- 'bin/ossl',
- 'bin/pkgup',
- 'bin/setgov',
- 'bin/setmon',
- 'bin/setxkeeb',
- 'bin/statusbar.py',
- 'bin/suspendtodisk',
- 'bin/syncboi',
- 'bin/ttygrab',
- 'bin/weather.py'
+ "bin/0x0",
+ "bin/cb",
+ "bin/cblist",
+ "bin/chromium",
+ "bin/colortest",
+ "bin/comptoggle",
+ "bin/dn",
+ "bin/dwmenu",
+ "bin/ldir",
+ "bin/maimclip",
+ "bin/maimcrop",
+ "bin/maimscrot",
+ "bin/ossl",
+ "bin/pkgup",
+ "bin/setgov",
+ "bin/setmon",
+ "bin/setxkeeb",
+ "bin/statusbar.py",
+ "bin/suspendtodisk",
+ "bin/syncboi",
+ "bin/ttygrab",
+ "bin/weather.py",
 ]
 
 files_etc = [
- 'etc/funcs',
- 'etc/sourceme',
- 'etc/sourceme-aliases',
- 'etc/sourceme-build'
+ "etc/funcs",
+ "etc/sourceme",
+ "etc/sourceme-aliases",
+ "etc/sourceme-build"
 ]
 
-install_data(files_bin, install_dir: get_option('bindir'))
-install_data(files_etc, install_dir: get_option('datadir'))
+files_share = [
+ "share/bash-handler",
+ "share/nfqws-handler"
+]
+
+install_data(files_bin,   install_dir: get_option('bindir'))
+install_data(files_etc,   install_dir: get_option('datadir'))
+install_data(files_share, install_dir: get_option('datadir'))

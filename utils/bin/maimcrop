@@ -8,7 +8,7 @@ if [ -z "${1}" ]
   savloc="${loc}"
   maim -s -u > "${loc}"
 
-  local error_value="${?}"
+  error_value="${?}"
   if [ ! "${error_value}" = 0 ]; then
    rm -rfv "${savloc}"
    exit 1
@@ -18,7 +18,7 @@ if [ -z "${1}" ]
   savloc="${1}"
   maim -s -u > "${1}"
 
-  local error_value="${?}"
+  error_value="${?}"
   if [ ! "${error_value}" = 0 ]; then
    rm -rfv "${savloc}"
    exit 1
