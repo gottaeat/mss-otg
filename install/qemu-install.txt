@@ -68,11 +68,12 @@ cp -vf \
  "${fdir}"/etc/vimrc            \
  /etc/
 
+cp -vf "${fdir}"/etc/acpi/handler.sh  /etc/acpi/
 cp -vf "${fdir}"/etc/pulse/*          /etc/pulse/
 cp -vf "${fdir}"/etc/ssh/*            /etc/ssh/
 cp -vf "${fdir}"/etc/sysctl.d/*       /etc/sysctl.d/
-cp -vf "${fdir}"/etc/udev/rules.d/*   /etc/udev/rules.d/
 cp -vf "${fdir}"/etc/systemd/system/* /etc/systemd/system/
+cp -vf "${fdir}"/etc/udev/rules.d/*   /etc/udev/rules.d/
 
 ln -sfv /usr/share/zoneinfo/Europe/Istanbul /etc/localtime
 
