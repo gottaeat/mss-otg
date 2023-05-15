@@ -163,13 +163,15 @@ pacman-key --populate archlinux
 groupadd -g 1001 mss
 
 useradd \
- -c mss          \
- -d /home/mss -m \
+ -c mss       \
+ -d /home/mss \
+ -m           \
+ -g 1001      \
+ -u 1001      \
  -G adbusers,adm,audio,disk,floppy,ftp,games,http,input,kmem,kvm,log,lp,mail,\
 optical,proc,rfkill,scanner,smmsp,storage,sys,systemd-journal,tty,users,utmp,\
-uucp,video,wheel \
- -g 1001         \
- -u 1001 mss
+uucp,video,wheel,wireshark \
+ mss
 
 passwd
 passwd mss
