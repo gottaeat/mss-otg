@@ -91,6 +91,7 @@ unzip
 v4l-utils
 vifm
 vim
+wireshark-qt
 xclip
 xf86-input-libinput
 xorg-server
