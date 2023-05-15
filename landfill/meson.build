@@ -1,5 +1,5 @@
 project('landfill', 'c',
- version: '22',
+ version: '23',
  license: 'MIT',
  default_options: [
   'buildtype=plain',
@@ -36,7 +36,6 @@ configure_file(
 add_global_arguments(
  [
   '-fno-builtin',
-  '--target=x86_64-apathy-linux-musl'
  ],
   language : 'c'
 )

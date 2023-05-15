@@ -1,5 +1,5 @@
 char *termname                         = "st-256color";
-static char *shell                     = "/bin/yash";
+static char *shell                     = "/bin/bash";
 
 static int borderpx                    = 0;
 float alpha                            = 0.95f;
