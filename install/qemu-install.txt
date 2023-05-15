@@ -1,0 +1,261 @@
+# 1 > partitioning
+# 1.1 > esp
+mkfs.fat -F 32 /dev/vda1 -n EFI -v
+
+# 1.2 > luks
+cryptsetup \
+ --type      luks2           \
+ --cipher    aes-xts-plain64 \
+ --hash      sha512          \
+ --iter-time 2000            \
+ --key-size  512             \
+ --pbkdf     argon2id        \
+\
+ --use-urandom               \
+ --verify-passphrase         \
+\
+ luksFormat /dev/vda2
+
+cryptsetup \
+ --allow-discards \
+ --persistent     \
+ luksOpen /dev/vda2 arch
+
+# 1.3 > lvm
+pvcreate /dev/mapper/arch
+vgcreate arch /dev/mapper/arch
+lvcreate --size 25G   arch --name rootfs
+lvcreate -l +100%FREE arch --name stuff
+
+mkfs.ext4 /dev/arch/rootfs -L arch-rootfs
+mkfs.ext4 /dev/arch/stuff  -L arch-stuff
+
+# 1.4 > mounts
+mount /dev/arch/rootfs /mnt
+mkdir /mnt/boot
+mount /dev/vda1 /mnt/boot
+
+# 2 > action
+# 2.1 > lay base
+pacman -Sy git --noconfirm
+git clone --depth=1 https://github.com/gottaeat/mss-otg
+
+pacstrap -K /mnt `cat /root/mss-otg/install/packages.txt`
+
+mv -v mss-otg/ /mnt/
+
+arch-chroot /mnt
+
+# 2.2 > chroot
+# 2.2.1 > configure /etc
+fdir="/mss-otg/dir"
+echo "nameserver 192.168.1.1" > /etc/resolv.conf
+
+cp -vf \
+ "${fdir}"/etc/fstab            \
+ "${fdir}"/etc/hostname         \
+ "${fdir}"/etc/hosts            \
+ "${fdir}"/etc/locale.conf      \
+ "${fdir}"/etc/locale.gen       \
+ "${fdir}"/etc/makepkg.conf     \
+ "${fdir}"/etc/mkinitcpio.conf  \
+ "${fdir}"/etc/mpd.conf         \
+ "${fdir}"/etc/named.conf       \
+ "${fdir}"/etc/ntp.conf         \
+ "${fdir}"/etc/pacman.conf      \
+ "${fdir}"/etc/proxychains.conf \
+ "${fdir}"/etc/vconsole.conf    \
+ "${fdir}"/etc/vimrc            \
+ /etc/
+
+cp -vf "${fdir}"/etc/pulse/*          /etc/pulse/
+cp -vf "${fdir}"/etc/ssh/*            /etc/ssh/
+cp -vf "${fdir}"/etc/sysctl.d/*       /etc/sysctl.d/
+cp -vf "${fdir}"/etc/udev/rules.d/*   /etc/udev/rules.d/
+cp -vf "${fdir}"/etc/systemd/system/* /etc/systemd/system/
+
+ln -sfv /usr/share/zoneinfo/Europe/Istanbul /etc/localtime
+
+# 2.2.1 > configure bind
+pushd /var/named
+ curl -L -O ftp://72.13.38.33/domain/named.root
+ chown named:named *
+popd
+
+> /var/log/named.log
+chown named:named /var/log/named.log
+
+cp -vf "${fdir}"/etc/NetworkManager/conf.d/dns-servers.conf \
+ /etc/NetworkManager/conf.d/
+
+# 2.2.2 > vim
+ln -sfv /usr/bin/vim /usr/bin/vi
+mkdir -pv ~/.config/vim/{backups,swaps}
+
+# 2.2.3 > rootfs init
+mkdir -pv \
+ /mnt/mss/{archive,externalstsuff,iso,usb,stuff}
+
+locale-gen
+pacman-key --init
+pacman-key --populate archlinux
+
+# 2.2.4 > users
+groupadd -g 1001 mss
+
+useradd \
+ -c mss          \
+ -d /home/mss -m \
+ -G adbusers,adm,audio,disk,floppy,ftp,games,http,input,kmem,kvm,log,lp,mail,\
+optical,proc,rfkill,scanner,smmsp,storage,sys,systemd-journal,tty,users,utmp,\
+uucp,video,wheel \
+ -g 1001         \
+ -u 1001 mss
+
+passwd
+passwd mss
+
+pwconv
+grpconv
+
+mount /mnt/mss/stuff
+mv /home/mss/.* /mnt/mss/stuff/techy-bits/home -v
+mount /home/mss
+
+visudo
+
+# 2.2.5 > iptables
+for i in `cat /proc/net/ip_tables_names`; do
+ iptables -t "${i}" --flush        &&
+ iptables -t "${i}" --delete-chain &&
+ iptables -t "${i}" --zero
+done
+
+iptables -A OUTPUT -j ACCEPT
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A INPUT ! -i lo -d 127.0.0.0/8 -j DROP
+iptables -A INPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT
+iptables -A INPUT -p tcp --dport 80    -j ACCEPT
+iptables -A INPUT -p tcp --dport 443   -j ACCEPT
+iptables -A INPUT -p tcp --dport 1337  -j ACCEPT
+iptables -A INPUT -p tcp --dport 1338  -j ACCEPT
+iptables -A INPUT -p tcp --dport 1935  -j ACCEPT
+iptables -A INPUT -p tcp --dport 53    -j ACCEPT
+iptables -A INPUT -p udp --dport 53    -j ACCEPT
+iptables -A INPUT -p tcp --dport 3131  -j ACCEPT
+iptables -A INPUT -p tcp --dport 8000  -j ACCEPT
+iptables -A INPUT   -j DROP
+iptables -A FORWARD -j DROP
+
+iptables-save -f /etc/iptables/iptables.rules
+
+# 2.2.5.1 > nfqws
+cd
+
+git clone --depth=1 https://github.com/bol-van/zapret
+cd  zapret/nfq/
+
+make clean
+
+CPPFLAGS="-DNDEBUG -D_FORTIFY_SOURCE=2"
+  CFLAGS="${CPPFLAGS} -g0 -s -w -pipe -O3 -march=x86-64 -mtune=generic"
+  CFLAGS="${CFLAGS} -fcommon -fstack-protector-strong"
+CXXFLAGS="${CFLAGS}"
+ LDFLAGS="${CFLAGS} -Wl,--as-needed,--sort-common,-z,relro,-z,now,--gc-sections,-O3"
+
+for i in *.c crypto/*.c; do clang ${CFLAGS} -std=gnu99 -c "${i}"; done
+
+clang ${LDFLAGS} -std=gnu99 *.o -o nfqws \
+ -lz -lcap -lmnl -lnetfilter_queue -lnfnetlink
+
+for i in nfqws; do
+ strip --strip-all "${i}"
+ chown root:root "${i}"
+ mv "${i}" /usr/bin/
+done
+
+cd ../../; rm -rf zapret/
+
+# 2.2.6 > services
+systemctl enable NetworkManager
+systemctl enable gpm
+systemctl enable iptables
+systemctl enable mpd
+systemctl enable named
+systemctl enable ntpd
+systemctl enable sshd
+systemctl enable tor
+systemctl enable zapret
+
+# 2.2.7 > bootloader
+mkinitcpio -P
+
+swapuuid="$(blkid `mount | awk '/\/mnt\/mss\/stuff/{print $1}'` \
+            | awk '{gsub(/"/,""); print $3}')"
+swapoffs="$(filefrag -v "/mnt/mss/stuff/techy-bits/swapfile" \
+            | awk '$1=="0:" {print substr($4, 1, length($4)-2)}')"
+
+cmdline="initrd=\intel-ucode.img initrd=\initramfs-linux.img"
+cmdline="${cmdline} cryptdevice=/dev/vda2:cryptlvm root=/dev/arch/rootfs"
+cmdline="${cmdline} ro mitigations=off"
+cmdline="${cmdline} resume=${swapuuid} resume_offset=${swapoffs}"
+
+efibootmgr \
+ -c                  \
+ -d "/dev/vda" -p 1  \
+ -L "arch"           \
+ -l "\vmlinuz-linux" \
+ -u "${cmdline}"
+
+exit
+reboot
+
+# 3 > user
+# 3.1 > yay
+git clone --depth=1 https://aur.archlinux.org/yay.git
+cd  yay/
+
+makepkg -sri
+
+cd ../; rm -rf yay/
+
+yay -Syu --noconfirm \
+ dragon-drop         \
+ dynamips            \
+ fbcat               \
+ gns3-gui            \
+ gns3-server         \
+ nginx-mod-rtmp      \
+ ookla-speedtest-bin \
+ ttf-ms-fonts        \
+ ubridge             \
+ ungoogled-chromium-bin
+
+# 3.2 > mss-otg
+cd /mnt/mss/stuff/techy-bits/git/mss-otg/utils
+
+mkdir build
+cd    build
+
+meson setup ..; samu; sudo samu install
+
+sudo -s
+ln -sfv /mnt/mss/stuff/techy-bits/git/mss-otg /mss/repo
+ln -sfv /mnt/mss/stuff/techy-bits/work        /mss/work
+
+chown -Rh root:root /mss
+
+ln -sfv /mss/share/bash-handler /etc/profile
+ln -sfv /mss/share/bash-handler /etc/bash.bashrc
+
+exit
+
+cd ../; rm -rf build; cd ../landfill/
+
+mkdir build
+cd    build
+
+meson setup ..; samu; sudo samu install
+
+cd ../; rm -rf build/
