@@ -1,7 +1,7 @@
-#!/mss/bin/sh
-. /mss/files/sourceme
+#!/bin/sh
+. /mss/etc/sourceme
 
-# 2 >> define prompts
+# 1 > define prompts
     sbefore="   "
     pbefore=" "
    cur_zero="\\033[0G"
@@ -14,7 +14,7 @@
 memearrow="${pbefore}${cb_whi}→${c_res} "
      askq="${pbefore}${cb_blu}?${c_res} "
 
-# 3 >> printing functions
+# 2 > printing functions
 aprint()      { printf "${memearrow}${@}\n"; }
 aprint_nc()   { printf "\n";                 }
 aprint_nm()   { printf "${sbefore}${@}\n";   }
@@ -34,7 +34,7 @@ aprint_arm()  { printf "${sbefore}${@}"; armprompt ; }
 aprint_usage(){ aprint "${cb_red}usage${cb_blu}:${c_res} ${@}"; }
 lsdetail()    { aprint "${cb_red}${1} ${cb_blu}:${c_res} ${2}"; }
 
-# 4 >> checks and evaluation functions
+# 3 > checks and evaluation functions
 evalret(){
  local error_value="${?}"
  if [ ${error_value} -eq 0 ]; then succprompt; else failprompt; fi

@@ -1,0 +1,35 @@
+# 1 > vars
+# 1.1 > path
+       PATH="${PATH}:/mss/bin"
+export PATH="${PATH}:/mnt/mss/stuff/techy-bits/bin"
+
+# 1.2 > essential
+export   PAGER="less"
+export  EDITOR="vim"
+export GPG_TTY="$(tty)"
+
+# 1.3 > misc
+export          MPD_HOST="/var/lib/mpd/socket"
+export   MOZ_USE_XINPUT2="1"
+export SAL_USE_VCLPLUGIN=gen
+
+# 1.4 > colors
+ c_res="\033[0;39m"
+cl_blk="\033[0;30m" cb_blk="\033[1;30m"
+cl_red="\033[0;31m" cb_red="\033[1;31m"
+cl_grn="\033[0;32m" cb_grn="\033[1;32m"
+cl_yel="\033[0;33m" cb_yel="\033[1;33m"
+cl_blu="\033[0;34m" cb_blu="\033[1;34m"
+cl_mgn="\033[0;35m" cb_mgn="\033[1;35m"
+cl_cyn="\033[0;36m" cb_cyn="\033[1;36m"
+cl_whi="\033[0;37m" cb_whi="\033[1;37m"
+
+# 2 > functions
+cdo()  { cd - >/dev/null 2>&1;}
+tarup(){ tar cfp "${1}".tar "${1}";}
+ytmusic(){
+ yt-dlp \
+  -o "${PWD}/%(playlist_title)s/%(playlist_index)s %(title)s.%(ext)s" \
+  -f bestaudio                                                        \
+ ${@}
+}
