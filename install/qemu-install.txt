@@ -131,6 +131,7 @@ EOF
 cp -vf "${fdir}"/etc/acpi/handler.sh  /etc/acpi/
 cp -vf "${fdir}"/etc/pulse/*          /etc/pulse/
 cp -vf "${fdir}"/etc/ssh/sshd_config  /etc/ssh/
+cp -vf "${fdir}"/etc/sudoers.d/*      /etc/sudoers.d/
 cp -vf "${fdir}"/etc/sysctl.d/*       /etc/sysctl.d/
 cp -vf "${fdir}"/etc/systemd/system/* /etc/systemd/system/
 cp -vf "${fdir}"/etc/udev/rules.d/*   /etc/udev/rules.d/
