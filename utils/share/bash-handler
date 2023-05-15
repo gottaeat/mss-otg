@@ -9,7 +9,7 @@ append_path(){
  esac
 }
 
-append_path '/mss/bin'
+PATH="/mss/bin:${PATH}"
 append_path '/usr/local/sbin'
 append_path '/usr/local/bin'
 append_path '/usr/bin'

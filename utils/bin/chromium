@@ -1,6 +1,6 @@
 #!/bin/sh
 exec \
- /usr/lib/chromium \
+ /usr/lib/chromium/chromium \
  --enable-features=CSSColorSchemeUARendering \
  --enable-features=VaapiVideoDecode          \
  --enable-features=WebUIDarkMode             \
