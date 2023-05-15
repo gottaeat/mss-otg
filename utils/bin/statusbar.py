@@ -86,19 +86,21 @@ if not tmux:
     for dirs in listdir(hwmonfile_path):
         for i in listdir(hwmonfile_path + dirs):
             fulltemp_path = hwmonfile_path + dirs + '/' + i
-
             if "_label" in fulltemp_path:
                 tempfile_list.append(fulltemp_path)
 
-    for temp_file in tempfile_list:
-        tmp_tempread = open(temp_file)
-        for line in tmp_tempread.readlines():
-            if 'Tctl' or 'Package' or 'Core 0' in line:
-                final_tempfile = sub(r"label", "input", temp_file)
-            else:
-                final_tempfile = None
+    labels = ['Tctl', 'Package', 'Core 0']
 
-        tmp_tempread.close()
+    for i in range(0, len(tempfile_list)):
+       tmpread = open(tempfile_list[i])
+       tmpread_contents = sub(r"\n", "", tmpread.read())
+       tmpread.close()
+
+       if any([label in tmpread_contents for label in labels]):
+           final_tempfile = sub(r"label", "input", tempfile_list[i])
+           break
+       else:
+           final_tempfile = None
 
 # 2 > funcs
 # 2.1 > applet funcs

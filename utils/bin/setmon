@@ -13,8 +13,9 @@ if [ ! "$(xrandr | awk '/VGA-1/{print $2}')" = "connected" ]
 
   if [ ! "${cur_res}" -gt "${lvds_res}" ]
    then
+    xrandr --output VGA-1 --primary --auto
+    xrandr --output LVDS-1 --right-of VGA-1
     setxkeeb
-
     [ -f /home/mss/.fehbg ] && /home/mss/.fehbg
    else
     xrandr --output VGA-1 --noprimary
