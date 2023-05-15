@@ -32,23 +32,61 @@ mkfs.ext4 /dev/arch/stuff  -L arch-stuff
 
 # 1.4 > mounts
 mount /dev/arch/rootfs /mnt
+
 mkdir /mnt/boot
 mount /dev/vda1 /mnt/boot
 
+mkdir /stuff
+mount /dev/arch/stuff /stuff
+
 # 2 > action
 # 2.1 > lay base
-pacman -Sy git --noconfirm
-git clone --depth=1 https://github.com/gottaeat/mss-otg
-
-pacstrap -K /mnt `cat /root/mss-otg/install/packages.txt`
-
-mv -v mss-otg/ /mnt/
+pacstrap -K /mnt `cat /stuff/techy-bits/git/mss-otg/install/packages.txt`
 
 arch-chroot /mnt
 
 # 2.2 > chroot
+# 2.2.1 > set repo
+mkdir -pv \
+ /mnt/mss/{archive,externalstsuff,iso,usb,stuff}
+
+mount /dev/arch/stuff /mnt/mss/stuff
+
+repodir="/mnt/mss/stuff/techy-bits/git/mss-otg"
+cd "${repodir}"/utils
+
+mkdir build
+cd    build
+
+meson setup ..; samu; samu install
+
+ln -sfv /mnt/mss/stuff/techy-bits/git/mss-otg /mss/repo
+ln -sfv /mnt/mss/stuff/techy-bits/work        /mss/work
+
+chown -Rh root:root /mss
+
+ln -sfv /mss/share/bash-handler /etc/profile
+ln -sfv /mss/share/bash-handler /etc/bash.bashrc
+
+cd ../; rm -rf build
+
+exit
+
+# 2.2.2 > landfill
+arch-chroot /mnt
+
+repodir="/mnt/mss/stuff/techy-bits/git/mss-otg"
+cd "${repodir}"/landfill
+
+mkdir build
+cd    build
+
+meson setup ..; samu; sudo samu install
+
+cd ../; rm -rf build/; cd
+
 # 2.2.1 > configure /etc
-fdir="/mss-otg/dir"
+fdir="${repodir}/dir"
 echo "nameserver 192.168.1.1" > /etc/resolv.conf
 
 cp -vf \
@@ -93,11 +131,9 @@ cp -vf "${fdir}"/etc/NetworkManager/conf.d/dns-servers.conf \
 ln -sfv /usr/bin/vim /usr/bin/vi
 mkdir -pv ~/.config/vim/{backups,swaps}
 
-# 2.2.3 > rootfs init
-mkdir -pv \
- /mnt/mss/{archive,externalstsuff,iso,usb,stuff}
-
+# 2.2.3 > arch init
 locale-gen
+
 pacman-key --init
 pacman-key --populate archlinux
 
@@ -119,8 +155,7 @@ passwd mss
 pwconv
 grpconv
 
-mount /mnt/mss/stuff
-mv /home/mss/.* /mnt/mss/stuff/techy-bits/home -v
+rm -rfv /home/mss/.*
 mount /home/mss
 
 visudo
@@ -159,12 +194,6 @@ cd  zapret/nfq/
 
 make clean
 
-CPPFLAGS="-DNDEBUG -D_FORTIFY_SOURCE=2"
-  CFLAGS="${CPPFLAGS} -g0 -s -w -pipe -O3 -march=x86-64 -mtune=generic"
-  CFLAGS="${CFLAGS} -fcommon -fstack-protector-strong"
-CXXFLAGS="${CFLAGS}"
- LDFLAGS="${CFLAGS} -Wl,--as-needed,--sort-common,-z,relro,-z,now,--gc-sections,-O3"
-
 for i in *.c crypto/*.c; do clang ${CFLAGS} -std=gnu99 -c "${i}"; done
 
 clang ${LDFLAGS} -std=gnu99 *.o -o nfqws \
@@ -180,14 +209,15 @@ cd ../../; rm -rf zapret/
 
 # 2.2.6 > services
 systemctl enable NetworkManager
+systemctl enable acpid
 systemctl enable gpm
 systemctl enable iptables
 systemctl enable mpd
 systemctl enable named
+systemctl enable nfqws
 systemctl enable ntpd
 systemctl enable sshd
 systemctl enable tor
-systemctl enable zapret
 
 # 2.2.7 > bootloader
 mkinitcpio -P
@@ -233,30 +263,5 @@ yay -Syu --noconfirm \
  ubridge             \
  ungoogled-chromium-bin
 
-# 3.2 > mss-otg
-cd /mnt/mss/stuff/techy-bits/git/mss-otg/utils
-
-mkdir build
-cd    build
-
-meson setup ..; samu; sudo samu install
-
-sudo -s
-ln -sfv /mnt/mss/stuff/techy-bits/git/mss-otg /mss/repo
-ln -sfv /mnt/mss/stuff/techy-bits/work        /mss/work
-
-chown -Rh root:root /mss
-
-ln -sfv /mss/share/bash-handler /etc/profile
-ln -sfv /mss/share/bash-handler /etc/bash.bashrc
-
-exit
-
-cd ../; rm -rf build; cd ../landfill/
-
-mkdir build
-cd    build
-
-meson setup ..; samu; sudo samu install
-
-cd ../; rm -rf build/
+# 3.2 > cleanup
+pacman -Qtdq | sudo pacman -Rns -
