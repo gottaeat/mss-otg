@@ -1,0 +1,22 @@
+#!/mss/bin/sh
+. /mss/files/funcs
+
+muslcguess="/usr/share/autoconf/build-aux/config.guess"
+  muslcsub="/usr/share/autoconf/build-aux/config.sub"
+
+cguess="$(find . -type f -name config\.guess)"
+  csub="$(find . -type f -name config\.sub)"
+
+aprint_nc
+for guess in ${cguess}; do
+ aprint_ret "replacing: ${cl_grn}${guess}${c_res}"
+  cp "${muslcguess}" "${guess}"
+ evalret
+done
+
+for sub in ${csub}; do
+ aprint_ret "replacing: ${cl_grn}$sub${c_res}"
+  cp "${muslcsub}"   "${sub}"
+ evalret
+done
+aprint_nc

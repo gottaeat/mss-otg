@@ -1,0 +1,66 @@
+#!/mss/bin/sh
+. /mss/files/funcs
+rootcheck
+
+case "${1}" in y|Y|yes) answersusp="yes";; esac
+if [ -z "${answersusp}" ]; then
+ aprint_nc
+ aprint_ask "write the current state to swap and suspend? (y/n): "
+ read answersusp
+fi
+
+case "${answersusp}" in
+ y|Y|yes)
+  aprint_nc
+  aprint_ret "clearing page cache, dentries and inodes."
+   echo 3 > /proc/sys/vm/drop_caches
+  evalretkill
+
+  case "$(sed '/^Filename/d' /proc/swaps | awk '{print $1}')" in
+   *swapfile*)
+    lateron(){ :;}
+   ;;
+   */dev/zram*)
+    lateron(){ ainitmgr start swap zram ;}
+    ainitmgr start swap swapfile
+   ;;
+   *)
+    lateron(){ ainitmgr stop  swap      ;}
+    ainitmgr start swap swapfile
+   ;;
+  esac
+
+  aprint_nc
+  datebefore="$(date +%s)"
+  aprint "date before suspend is ${cl_grn}$(date '+%a %d %I:%M:%S%P')${c_res}."
+  aprint "suspending ${cl_grn}now${c_res}."
+
+  echo disk > /sys/power/state
+
+  dateafter="$(date +%s)"
+  timespent="$((${dateafter} - ${datebefore}))"
+  humantime="$(printf "%dd %dh %dm\n"                  \
+            "$(echo "${timespent}/86400"        | bc)" \
+            "$(echo "(${timespent}%86400)/3600" | bc)" \
+            "$(echo "(${timespent}%3600)/60"    | bc)")"
+
+  aprint_nc
+  aprint "woke up from suspend at ${cl_grn}$(date '+%a %d %I:%M:%S%P')${c_res}."
+  aprint "slept for ${cl_grn}${humantime}${c_res}."
+  aprint_nc
+
+  lateron
+ ;;
+ n|N|no)
+  aprint_nc
+  aprint "${cl_grn}not${c_res} suspending."
+  aprint_nc
+  exit 1
+ ;;
+ *)
+  aprint_nc
+  aprint_usage "{y|Y|yes}{n|N|no}"
+  aprint_nc
+  exit 1
+ ;;
+esac

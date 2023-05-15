@@ -1,0 +1,44 @@
+#!/mss/bin/sh
+. /mss/files/funcs
+rootcheck
+
+if [ -z "${1}" ]
+ then aprint_fail "no mount point selected, exiting."; exit 1
+ else chrpnt="${1}"
+fi
+
+if [ -z "${2}" ]
+ then aprint_fail "no user selected, exiting."; exit 1
+ else chrusr="${2}"
+fi
+
+aprint_nc
+aprint_ret "mounting ${chrpnt} to itself."
+ mount --bind "${chrpnt}" "${chrpnt}"
+evalretkill
+
+for i in dev sys run proc; do
+ aprint_ret "mounting ${i} to ${chrpnt}/${i}"
+  mount --rbind /${i} ${chrpnt}/${i}
+ evalretkill
+done
+
+lsdetail "chrooting to" "${cl_grn}${chrpnt}${c_res}"
+lsdetail "as user     " "${cl_grn}${chrusr}${c_res}"
+
+aprint_nc
+chroot "${chrpnt}" /usr/bin/env -i /bin/su - "${chrusr}"
+
+aprint_nc
+aprint "exited the chroot."
+
+for i in dev sys run proc; do
+ aprint_ret "unmounting ${i}."
+  umount -l "${chrpnt}"/"${i}"
+ evalretkill
+done
+
+aprint_ret "unmounting chrpoint from itself."
+ umount -l "${chrpnt}"
+evalretkill
+aprint_nc

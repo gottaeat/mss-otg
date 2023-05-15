@@ -1,0 +1,21 @@
+#!/mss/bin/sh
+. /mss/files/funcs
+rootcheck
+
+aprint_nc
+for log in /var/log/*; do
+  if [ -f "${log}" ]
+   then
+    aprint_ret "cleaning ${cl_grn}${log}${c_res}." 
+     > "${log}"
+    evalret
+   else
+    aprint_fail "${cl_grn}${log}${c_res} is a directory."
+  fi
+ done
+
+aprint_ret "nuking ${cl_grn}.la${c_res} files."
+ find /lib /usr/lib /opt -type f -name \*.la \
+  -exec rm -rf {} ';'
+evalret
+aprint_nc

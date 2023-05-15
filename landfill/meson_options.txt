@@ -1,0 +1,16 @@
+option('fontname',
+ type: 'string',
+ value: 'Terminus'
+)
+option('dmenufontsize',
+ type: 'integer',
+ value: 10
+)
+option('dwmfontsize',
+ type: 'integer',
+ value: 10
+)
+option('stfontsize',
+ type: 'integer',
+ value: 10
+)

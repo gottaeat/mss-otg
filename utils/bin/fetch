@@ -1,0 +1,73 @@
+#!/mss/bin/sh
+. /mss/files/funcs
+. /mss/files/device.conf
+
+# system info
+    dist="$(awk '/PRETTY/{gsub(/PRETTY_NAME=\"|\"/,""); print}' /etc/os-release)"
+    kern="$(uname -r)"
+     mem="$(awk '/^MemFree:/      {mfree=int($2/1024)};          \
+                 /^Cached:/       {mcached=$2};                  \
+                 /^Buffers:/      {mbuffers=$2};                 \
+                 /^SReclaimable:/ {mrecl=$2};                    \
+                 /^MemAvailable:/ {mavail=int($2/1024)};         \
+                 {mcachefin=int((mcached+mbuffers+mrecl)/1024)}; \
+                 END{print mavail"m","("mfree"+"mcachefin")"}' /proc/meminfo)"
+
+# cpu
+cpu_pre="$(grep -m1 model\ name /proc/cpuinfo \
+           | awk '{gsub(/model\ name[[:space:]]:|with.*|@.*|AMD|Intel|\(R\)|\(TM\)|CPU/,""); \
+                   print}')"
+
+while [ "$(echo "${cpu_pre}" | grep \ \ )" ]; do
+ cpu_pre="$(echo "${cpu_pre}" | sed 's/  / /g')"
+done
+
+cpu_pre="$(echo "${cpu_pre}" | awk '{gsub(/^ | $/,""); print}')"
+cpu="${cpu_pre} ($(nproc))"
+
+# shell
+ intshell=$(basename $(grep ${LOGNAME} /etc/passwd | cut -d: -f7))
+    binsh="(/bin/sh: $(realpath /bin/sh | awk 'sub(/\/bin\//,"")'))"
+    shell="${intshell} $(${intshell} --version \
+                         | awk 'NR==1 {ver=$5}; END{print ver}')"
+
+# uptime
+upt_pre="$(awk '{print int($1)}' /proc/uptime)"
+   [ "${upt_pre}" -lt 3600  ]                   \
+&& upt="$(printf "%02d:%02.0f\n"                \
+                 "$(((${upt_pre}%3600)/60))"    \
+                 "$((${upt_pre}%60))")"         \
+|| [ "${upt_pre}" -lt 86400 ]                   \
+&& upt="$(printf "%02d:%02d:%02.0f\n"           \
+                 "$(((${upt_pre}%86400)/3600))" \
+                 "$(((${upt_pre}%3600)/60))"    \
+                 "$((${upt_pre}%60))")"         \
+|| upt="$(printf "%dd + %02d:%02d:%02.0f\n"     \
+                 "$((${upt_pre}/86400))"        \
+                 "$(((${upt_pre}%86400)/3600))" \
+                 "$(((${upt_pre}%3600)/60))"    \
+                 "$((${upt_pre}%60))")"
+
+# logo
+printlogo(){
+ aprint_ret "${cb_red}
+  __,  ,_   __,  -/- /_
+ (_/(__/_)_(_/(__/__/ (__(_/_
+      /                  _/_
+     /                  (/${c_res}\n"
+}
+
+[ "${1}" = "ascii" ] && printlogo
+
+# hostname
+read _host < /etc/hostname
+
+aprint_nc
+lsdetail "os  " "${dist}"
+lsdetail "kern" "${kern}"
+lsdetail "host" "${cl_grn}${_host}${c_res} on ${cb_blu}${amachine}${c_res}"
+lsdetail "sh  " "${shell} ${binsh}"
+lsdetail "cpu " "${cpu}"
+lsdetail "mem " "${mem}"
+lsdetail "upt " "${upt} ($upt_pre)"
+aprint_nc

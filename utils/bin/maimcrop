@@ -1,0 +1,30 @@
+#!/mss/bin/sh
+. /mss/files/funcs
+dat="$(date "+%Y%m%d_%H%M%S_maimcrop")"
+loc="/mnt/mss/stuff/personal/screenshots/grabs/${dat}.png"
+
+if [ -z "${1}" ]
+ then
+  savloc="${loc}"
+  maim -s -u > "${loc}"
+
+  local error_value="${?}"
+  if [ ! "${error_value}" = 0 ]; then
+   rm -rfv "${savloc}"
+   exit 1
+  fi
+
+ else
+  savloc="${1}"
+  maim -s -u > "${1}"
+
+  local error_value="${?}"
+  if [ ! "${error_value}" = 0 ]; then
+   rm -rfv "${savloc}"
+   exit 1
+  fi
+fi
+
+aprint_nc
+ lsdetail "saved to" "${savloc}"
+aprint_nc

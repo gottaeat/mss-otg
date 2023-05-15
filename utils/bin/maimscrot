@@ -1,0 +1,28 @@
+#!/mss/bin/sh
+. /mss/files/funcs
+
+       dat="$(date "+%Y%m%d_%H%M%S_maimscrot")"
+       loc="/mnt/mss/stuff/personal/screenshots/entire/${dat}.png"
+primaryres="$(xrandr | awk '/primary/{print $4}')"
+
+[ -z "${1}" ] && savloc="${loc}" || savloc="${1}"
+
+aprint_nc
+lsdetail "primary screen res" "${primaryres}"
+aprint_nc
+
+aprint_ret "grabbing screen." 
+ maim -u > /tmp/maimcrop.tmp
+evalretkill
+
+aprint_ret "cropping the first monitor." 
+ convert /tmp/maimcrop.tmp -crop "${primaryres}" ${savloc}
+evalretkill
+
+aprint_ret "removing temp files."
+ rm -f /tmp/maimcrop.tmp
+evalretkill
+
+aprint_nc
+lsdetail "saved to" "${savloc}"
+aprint_nc

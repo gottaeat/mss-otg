@@ -1,0 +1,23 @@
+#!/mss/bin/sh
+. /mss/files/funcs
+
+if [ ! "$(xrandr | awk '/VGA-1/{print $2}')" = "connected" ]
+ then
+  aprint_nc
+  aprint_fail "VGA-1 is not connected."
+  aprint_nc
+  exit 1
+ else
+   cur_res="$(xrandr | awk 'NR==1{print $8}')"
+  lvds_res="$(xrandr | awk '/LVDS/{sub(/x.*/,""); print $3}')"
+
+  if [ ! "${cur_res}" -gt "${lvds_res}" ]
+   then
+    setxkeeb
+
+    [ -f /home/mss/.fehbg ] && /home/mss/.fehbg
+   else
+    xrandr --output VGA-1 --noprimary
+    xrandr --output VGA-1 --off
+  fi
+fi

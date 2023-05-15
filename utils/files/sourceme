@@ -1,0 +1,70 @@
+# 1 > vars
+# 1.1 > set before export
+mypath="/usr/sbin:/usr/bin:/sbin:/bin"
+mypath="$mypath:/mss/bin"
+mypath="$mypath:/mnt/mss/stuff/techy-bits/bin"
+mypath="$mypath:/opt/bind/bin"
+mypath="$mypath:/opt/browserlibs/bin"
+mypath="$mypath:/opt/chromium/bin"
+mypath="$mypath:/opt/cryptshit/bin"
+mypath="$mypath:/opt/llvm/bin"
+mypath="$mypath:/opt/llvm/compat"
+mypath="$mypath:/opt/muzak/bin"
+mypath="$mypath:/opt/nginx/bin"
+mypath="$mypath:/opt/qemu/bin"
+mypath="$mypath:/opt/spoofshit/bin"
+mypath="$mypath:/opt/torshit/bin"
+mypath="$mypath:/opt/wlanshit/bin"
+
+mylibpath="/opt/bind/lib"
+mylibpath="$mylibpath:/opt/browserlibs/lib"
+mylibpath="$mylibpath:/opt/llvm/lib"
+mylibpath="$mylibpath:/opt/mimalloc/lib"
+mypkgconfigpath="/usr/share/pkgconfig:/usr/lib/pkgconfig"
+mypkgconfigpath="${mypkgconfigpath}:/opt/browserlibs/lib/pkgconfig"
+
+# 1.2 > essentials
+export            PATH="$mypath"
+export    LIBRARY_PATH="$mylibpath"
+export LD_LIBRARY_PATH="$mylibpath"
+export PKG_CONFIG_PATH="$mypkgconfigpath"
+export            LANG="en_US.UTF-8"
+export          LC_ALL="en_US.UTF-8"
+export           PAGER="less"
+export          EDITOR="vim"
+export         GPG_TTY="$(tty)"
+export   XDG_DATA_DIRS="/usr/share"
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_CONFIG_DIRS="/etc/xdg"
+export         INPUTRC="/etc/inputrc"
+export         MANPATH="/usr/share/man"
+export        INFOPATH="/usr/share/info"
+
+# 1.3 > unset
+unset mypath mylibpath mypkgconfigpath
+
+# 1.4 > extra
+export        MPD_HOST="/mnt/mss/stuff/media/music/mpd/socket"
+export MOZ_USE_XINPUT2="1"
+
+# 1.5 > colors
+ c_res="\033[0;39m"
+cl_blk="\033[0;30m" cb_blk="\033[1;30m"
+cl_red="\033[0;31m" cb_red="\033[1;31m"
+cl_grn="\033[0;32m" cb_grn="\033[1;32m"
+cl_yel="\033[0;33m" cb_yel="\033[1;33m"
+cl_blu="\033[0;34m" cb_blu="\033[1;34m"
+cl_mgn="\033[0;35m" cb_mgn="\033[1;35m"
+cl_cyn="\033[0;36m" cb_cyn="\033[1;36m"
+cl_whi="\033[0;37m" cb_whi="\033[1;37m"
+
+# 2 > functions
+cdo()  { cd - >/dev/null 2>&1;}
+tarup(){ tar cfp "${1}".tar "${1}";}
+ytmusic(){
+ yt-dlp \
+  -o "${PWD}/%(playlist_title)s/%(playlist_index)s %(title)s.%(ext)s" \
+  -f bestaudio                                                        \
+ ${@}
+}
+mimup(){ export LD_PRELOAD="/opt/mimalloc/lib/libmimalloc.so";}
