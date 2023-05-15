@@ -40,6 +40,7 @@ libxrender
 links
 linux
 linux-firmware
+lsof
 lvm2
 maim
 meson
@@ -50,10 +51,13 @@ mtr
 mumble
 mupdf
 ncmpcpp
+neofetch
+netcat
 network-manager-applet
 networkmanager
 nginx
 nm-connection-editor
+nmap
 ntp
 openssh
 openvpn
