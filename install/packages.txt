@@ -54,7 +54,6 @@ mupdf
 ncmpcpp
 neofetch
 netcat
-network-manager-applet
 networkmanager
 nginx
 nm-connection-editor
