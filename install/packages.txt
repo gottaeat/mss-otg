@@ -1,3 +1,4 @@
+acpid
 aircrack-ng
 alsa-utils
 android-tools
