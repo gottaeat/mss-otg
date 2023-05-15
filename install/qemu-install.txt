@@ -212,12 +212,14 @@ systemctl enable NetworkManager
 systemctl enable acpid
 systemctl enable gpm
 systemctl enable iptables
-systemctl enable mpd
 systemctl enable named
 systemctl enable nfqws
 systemctl enable ntpd
 systemctl enable sshd
 systemctl enable tor
+
+systemctl mask mpd.socket
+systemctl enable mpd.service
 
 # 2.2.7 > bootloader
 mkinitcpio -P
