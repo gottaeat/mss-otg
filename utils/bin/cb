@@ -1,4 +1,4 @@
-#!/mss/bin/sh
+#!/bin/sh
 exec curl \
  -L     \
  -O     \

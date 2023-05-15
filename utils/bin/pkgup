@@ -1,5 +1,5 @@
-#!/mss/bin/sh
-. /mss/files/funcs
+#!/bin/sh
+. /mss/etc/funcs
 
 [ -z "${1}" ] && aprint_fail "no dir or file to pkgup selected in \$1, exiting." && exit 1
 [ -z "${2}" ] && aprint_fail "no archive name in \$2 specified, exiting."        && exit 1
@@ -23,9 +23,8 @@ sizebefore="$(du -sh "${bname}".tar | awk '{print $1}')"
 datebefore="$(date +%s)"
 
 aprint_ret "comressing to ${cl_grn}${zname}.tar.zst${c_res}."
- /bin/busybox time \
-  zstd -T4 --rm -v -12 "${bname}".tar -o "${zname}".tar.zst \
-   >> "${redirect_to}" 2>&1
+ zstd -T4 --rm -v -12 "${bname}".tar -o "${zname}".tar.zst \
+  >> "${redirect_to}" 2>&1
 evalret
 
 dateafter="$(date +%s)"

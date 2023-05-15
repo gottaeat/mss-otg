@@ -1,5 +1,5 @@
-#!/bin/ash
-. /mss/files/funcs
+#!/bin/sh
+. /mss/etc/funcs
 
 aprint_nc
 printf ' normal         -> bright\n'

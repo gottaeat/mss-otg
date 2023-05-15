@@ -1,6 +1,4 @@
-#!/mss/bin/sh
-. /mss/files/sourceme
-
+#!/bin/sh
 export DISPLAY=:0
 
 xkbcomp -w 0 /home/mss/xkbmap "${DISPLAY}"

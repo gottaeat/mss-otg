@@ -1,5 +1,5 @@
-#!/mss/bin/sh
-. /mss/files/funcs
+#!/bin/sh
+. /mss/etc/funcs
 rootcheck
 
 case "${1}" in y|Y|yes) answersusp="yes";; esac
@@ -15,20 +15,6 @@ case "${answersusp}" in
   aprint_ret "clearing page cache, dentries and inodes."
    echo 3 > /proc/sys/vm/drop_caches
   evalretkill
-
-  case "$(sed '/^Filename/d' /proc/swaps | awk '{print $1}')" in
-   *swapfile*)
-    lateron(){ :;}
-   ;;
-   */dev/zram*)
-    lateron(){ ainitmgr start swap zram ;}
-    ainitmgr start swap swapfile
-   ;;
-   *)
-    lateron(){ ainitmgr stop  swap      ;}
-    ainitmgr start swap swapfile
-   ;;
-  esac
 
   aprint_nc
   datebefore="$(date +%s)"

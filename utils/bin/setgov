@@ -1,5 +1,5 @@
-#!/mss/bin/sh
-. /mss/files/funcs
+#!/bin/sh
+. /mss/etc/funcs
 
 case "${1}" in
  cur)

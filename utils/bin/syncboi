@@ -1,4 +1,4 @@
-#!/mss/bin/sh
+#!/bin/sh
 exec rsync -v \
  --progress      \
  --ipv4          \
