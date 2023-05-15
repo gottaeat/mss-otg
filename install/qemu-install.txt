@@ -87,12 +87,20 @@ cd ../; rm -rf build/; cd
 
 # 2.2.1 > configure /etc
 fdir="${repodir}/dir"
+
 echo "nameserver 192.168.1.1" > /etc/resolv.conf
+echo "arch"                   > /etc/hostname
+
+cat << EOF > /etc/hosts
+127.0.0.1    localhost
+127.0.1.1    solitude solitude
+
+192.168.1.30 solitude
+192.168.1.31 ashtray
+EOF
 
 cp -vf \
  "${fdir}"/etc/fstab            \
- "${fdir}"/etc/hostname         \
- "${fdir}"/etc/hosts            \
  "${fdir}"/etc/locale.conf      \
  "${fdir}"/etc/locale.gen       \
  "${fdir}"/etc/makepkg.conf     \
