@@ -4,8 +4,6 @@ project('utils',
  default_options: [
   'buildtype=plain',
   'prefix=/mss',
-  'bindir=/mss/bin',
-  'datadir=/mss/etc',
  ]
 )
 
@@ -47,6 +45,6 @@ files_share = [
  'share/nfqws-handler'
 ]
 
-install_data(files_bin,   install_dir: get_option('bindir'))
-install_data(files_etc,   install_dir: get_option('datadir'))
-install_data(files_share, install_dir: get_option('datadir'))
+install_data(files_bin,   install_dir: join_paths(get_option('prefix'), 'bin'))
+install_data(files_etc,   install_dir: join_paths(get_option('prefix'), 'etc'))
+install_data(files_share, install_dir: join_paths(get_option('prefix'), 'share'))
