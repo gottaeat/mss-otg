@@ -11,10 +11,27 @@ project('utils',
 
 # 1 > files
 files_bin = [
- 'etc/funcs',
- 'etc/sourceme',
- 'etc/sourceme-aliases',
- 'etc/sourceme-build'
+ 'bin/0x0',
+ 'bin/cb',
+ 'bin/cblist',
+ 'bin/colortest',
+ 'bin/comptoggle',
+ 'bin/dn',
+ 'bin/ldir',
+ 'bin/maimclip',
+ 'bin/maimcrop',
+ 'bin/maimscrot',
+ 'bin/menuboi.sh',
+ 'bin/ossl',
+ 'bin/pkgup',
+ 'bin/setgov',
+ 'bin/setmon',
+ 'bin/setxkeeb',
+ 'bin/statusbar.py',
+ 'bin/suspendtodisk',
+ 'bin/syncboi',
+ 'bin/ttygrab',
+ 'bin/weather.py'
 ]
 
 files_etc = [
