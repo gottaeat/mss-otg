@@ -129,13 +129,13 @@ cat << EOF > /etc/ssh/banner
 
 EOF
 
-cp -vf "${fdir}"/etc/acpi/handler.sh  /etc/acpi/
-cp -vf "${fdir}"/etc/pulse/*          /etc/pulse/
-cp -vf "${fdir}"/etc/ssh/sshd_config  /etc/ssh/
-cp -vf "${fdir}"/etc/sudoers.d/*      /etc/sudoers.d/
-cp -vf "${fdir}"/etc/sysctl.d/*       /etc/sysctl.d/
-cp -vf "${fdir}"/etc/systemd/system/* /etc/systemd/system/
-cp -vf "${fdir}"/etc/udev/rules.d/*   /etc/udev/rules.d/
+cp -vfr "${fdir}"/etc/acpi/handler.sh  /etc/acpi/
+cp -vfr "${fdir}"/etc/pulse/*          /etc/pulse/
+cp -vfr "${fdir}"/etc/ssh/sshd_config  /etc/ssh/
+cp -vfr "${fdir}"/etc/sudoers.d/*      /etc/sudoers.d/
+cp -vfr "${fdir}"/etc/sysctl.d/*       /etc/sysctl.d/
+cp -vfr "${fdir}"/etc/systemd/system/* /etc/systemd/system/
+cp -vfr "${fdir}"/etc/udev/rules.d/*   /etc/udev/rules.d/
 
 ln -sfv /usr/share/zoneinfo/Europe/Istanbul /etc/localtime
 
