@@ -279,7 +279,7 @@ makepkg -sri
 cd ../; rm -rf yay/
 
 yay -Syu --noconfirm \
- cat`/mss/repo/install/pkglist/user/{base,qemu}.txt`
+ cat `/mss/repo/install/pkglist/user/{base,qemu}.txt`
 
 # 3.2 > cleanup
 pacman -Qtdq | sudo pacman -Rns -

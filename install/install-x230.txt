@@ -283,7 +283,7 @@ makepkg -sri
 cd ../; rm -rf yay/
 
 yay -Syu --noconfirm \
- cat`/mss/repo/install/pkglist/user/{base,x230}.txt`
+ cat `/mss/repo/install/pkglist/user/{base,x230}.txt`
 
 # 3.2 > cleanup
 pacman -Qtdq | sudo pacman -Rns -
