@@ -129,6 +129,7 @@ cat << EOF > /etc/ssh/banner
 
 EOF
 
+cp -vfr "${fdir}"/etc/xdg/picom.conf      /etc/xdg/
 cp -vfr "${fdir}"/etc/acpi/handler.sh     /etc/acpi/
 cp -vfr "${fdir}"/etc/pulse/*             /etc/pulse/
 cp -vfr "${fdir}"/etc/ssh/sshd_config     /etc/ssh/
