@@ -1,1 +1,3 @@
 efibootmgr
+glfw-x11
+openmw

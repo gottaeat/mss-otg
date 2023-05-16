@@ -1,5 +1,7 @@
 dynamips
 gns3-gui
 gns3-server
+ioquake3-git
+quakespasm-spiked-git
 ubridge
 ungoogled-chromium-bin
