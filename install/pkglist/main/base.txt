@@ -55,7 +55,6 @@ neofetch
 netcat
 networkmanager
 nginx
-nm-connection-editor
 nmap
 ntp
 openssh
