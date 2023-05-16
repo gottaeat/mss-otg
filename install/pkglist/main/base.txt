@@ -11,7 +11,6 @@ bully
 clinfo
 diffutils
 dsniff
-efibootmgr
 fdupes
 feh
 ffmpeg
@@ -83,7 +82,7 @@ strace
 terminus-font
 tmux
 tor
-transmission-gtk
+transmission-cli
 ttf-croscore
 ttf-sazanami
 unrar

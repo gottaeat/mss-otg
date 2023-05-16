@@ -1,0 +1,5 @@
+dynamips
+gns3-gui
+gns3-server
+ubridge
+ungoogled-chromium-bin

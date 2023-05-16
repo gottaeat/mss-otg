@@ -41,7 +41,8 @@ mount /dev/arch/stuff /stuff
 
 # 2 > action
 # 2.1 > lay base
-pacstrap -K /mnt `cat /stuff/techy-bits/git/mss-otg/install/packages.txt`
+pacstrap -K /mnt \
+ `cat /stuff/techy-bits/git/mss-otg/install/pkglist/{base,x230}.txt`
 
 arch-chroot /mnt
 
@@ -240,6 +241,7 @@ systemctl enable nfqws
 systemctl enable ntpd
 systemctl enable sshd
 systemctl enable tor
+systemctl enable transmission
 
 systemctl mask mpd.socket
 systemctl enable mpd.service
@@ -279,16 +281,7 @@ makepkg -sri
 cd ../; rm -rf yay/
 
 yay -Syu --noconfirm \
- dragon-drop         \
- dynamips            \
- fbcat               \
- gns3-gui            \
- gns3-server         \
- nginx-mod-rtmp      \
- ookla-speedtest-bin \
- ttf-ms-fonts        \
- ubridge             \
- ungoogled-chromium-bin
+ cat`/mss/repo/install/pkglist/user/{base,x230}.txt`
 
 # 3.2 > cleanup
 pacman -Qtdq | sudo pacman -Rns -
