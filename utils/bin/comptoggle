@@ -1,12 +1,6 @@
 #!/bin/sh
 mypicom(){
- picom \
-  --backend xrender     \
-  --no-fading-openclose \
-  --unredir-if-possible \
-  --use-damage          \
-  ${@} & disown
-
+ picom ${@} & disown
  exit 0
 }
 
