@@ -42,7 +42,7 @@ mount /dev/arch/stuff /stuff
 # 2 > action
 # 2.1 > lay base
 pacstrap -K /mnt \
- `cat /stuff/techy-bits/git/mss-otg/install/pkglist/{base,x230}.txt`
+ `cat /stuff/techy-bits/git/mss-otg/install/pkglist/main/{base,x230}.txt`
 
 arch-chroot /mnt
 
