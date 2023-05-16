@@ -49,7 +49,7 @@ arch-chroot /mnt
 # 2.2 > chroot
 # 2.2.1 > set repo
 mkdir -pv \
- /mnt/mss/{archive,externalstsuff,iso,usb,stuff}
+ /mnt/mss/{archive,externalstuff,iso,usb,stuff}
 
 mount /dev/arch/stuff /mnt/mss/stuff
 
