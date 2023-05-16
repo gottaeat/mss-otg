@@ -37,8 +37,8 @@ case "${1}" in
  button/volumedown)    userexec pactl set-sink-volume "${psink}" -5%    ;;
  button/volumeup)      userexec pactl set-sink-volume "${psink}" +5%    ;;
 
- video/brightnessdown) setbright -                                      ;;
- video/brightnessup)   setbright +                                      ;;
+#video/brightnessdown) setbright -                                      ;;
+#video/brightnessup)   setbright +                                      ;;
 
  ac_adapter)
   case "${4}" in
