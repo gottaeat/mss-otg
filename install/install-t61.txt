@@ -256,7 +256,7 @@ swapoffs="$(filefrag -v "/mnt/mss/stuff/techy-bits/swapfile" \
             | awk '$1=="0:" {print substr($4, 1, length($4)-2)}')"
 
 cmdline="cryptdevice=/dev/sda2:cryptlvm root=/dev/arch/rootfs"
-cmdline="${cmdline} ro mitigations=off"
+cmdline="${cmdline} mitigations=off"
 cmdline="${cmdline} processor.ignore_ppc=1 intel_pstate=disable"
 cmdline="${cmdline} thinkpad_acpi.fan_control=1"
 cmdline="${cmdline} resume=${swapuuid} resume_offset=${swapoffs}"
