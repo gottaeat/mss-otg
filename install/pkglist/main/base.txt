@@ -43,6 +43,7 @@ linux-firmware
 lsof
 lvm2
 maim
+man-db
 meson
 mpc
 mpd
