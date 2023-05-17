@@ -139,6 +139,12 @@ cp -vfr "${fdir}"/etc/systemd/logind.conf /etc/systemd/
 cp -vfr "${fdir}"/etc/systemd/system/*    /etc/systemd/system/
 cp -vfr "${fdir}"/etc/udev/rules.d/*      /etc/udev/rules.d/
 
+awk -i inplace \
+ '{gsub(/#load-module module-native-protocol-tcp/,\
+        "load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1");\
+         print}' \
+         /etc/pulse/default.pa
+
 ln -sfv /usr/share/zoneinfo/Europe/Istanbul /etc/localtime
 
 # 2.2.1 > configure bind
