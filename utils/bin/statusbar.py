@@ -354,6 +354,11 @@ def main():
 
         print_method(finprint)
     else:
+        # 3.2 > separate thread for weather
+        weather_thread = Thread(target=sb_weather)
+        weather_thread.daemon = True
+        weather_thread.start()
+
         while True:
             finprint  = f"\" {sb_bw()} ¦ {sb_lavg()} {sb_mem()} {sb_temp()}"
 
@@ -362,11 +367,6 @@ def main():
             finprint += f" ¦ {weat} ¦ {sb_mpd()} ¦ {sb_dat()} \""
 
             print_method(finprint)
-
-# 3.2 > separate thread for weather, 
-weather_thread = Thread(target=sb_weather)
-weather_thread.daemon = True
-weather_thread.start()
 
 # 3.3 > reddit
 if __name__ == "__main__":

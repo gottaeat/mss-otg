@@ -8,7 +8,7 @@ export  EDITOR="vim"
 export GPG_TTY="$(tty)"
 
 # 1.3 > misc
-export          MPD_HOST="/var/lib/mpd/socket"
+export          MPD_HOST="127.0.0.1"
 export   MOZ_USE_XINPUT2="1"
 export SAL_USE_VCLPLUGIN=gen
 
