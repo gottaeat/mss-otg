@@ -139,11 +139,19 @@ cp -vfr "${fdir}"/etc/systemd/logind.conf /etc/systemd/
 cp -vfr "${fdir}"/etc/systemd/system/*    /etc/systemd/system/
 cp -vfr "${fdir}"/etc/udev/rules.d/*      /etc/udev/rules.d/
 
-awk -i inplace \
- '{gsub(/#load-module module-native-protocol-tcp/,\
-        "load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1");\
-         print}' \
-         /etc/pulse/default.pa
+groupadd -r pulse
+groupadd -r pulse-access
+useradd -r -g pulse -G audio -d /var/run/pulse -m pulse
+rm -rfv /var/run/pulse/.bash*
+
+for i in /mss/work/table/pulse/*.pa; do
+ awk -i inplace \
+  '{gsub(/load-module module-native-protocol-unix/,\
+         "load-module module-native-protocol-unix\
+ auth-anonymous=1 socket=/var/run/pulse/native");\
+          print}' \
+          "${i}"
+done
 
 ln -sfv /usr/share/zoneinfo/Europe/Istanbul /etc/localtime
 
@@ -179,8 +187,8 @@ useradd \
  -g 1001      \
  -u 1001      \
  -G adbusers,adm,audio,disk,floppy,ftp,games,http,input,kmem,kvm,log,lp,mail,\
-optical,proc,rfkill,scanner,smmsp,storage,sys,systemd-journal,tty,users,utmp,\
-uucp,video,wheel,wireshark \
+optical,proc,pulse-access,rfkill,scanner,smmsp,storage,sys,systemd-journal,tty,\
+users,utmp,uucp,video,wheel,wireshark \
  mss
 
 passwd
@@ -248,6 +256,7 @@ systemctl enable iptables
 systemctl enable named
 systemctl enable nfqws
 systemctl enable ntpd
+systemctl enable pulseaudio
 systemctl enable sshd
 systemctl enable tor
 systemctl enable transmission
