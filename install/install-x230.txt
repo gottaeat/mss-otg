@@ -129,14 +129,15 @@ cat << EOF > /etc/ssh/banner
 
 EOF
 
-cp -vfr "${fdir}"/etc/acpi/handler.sh     /etc/acpi/
-cp -vfr "${fdir}"/etc/pulse/*             /etc/pulse/
-cp -vfr "${fdir}"/etc/ssh/sshd_config     /etc/ssh/
-cp -vfr "${fdir}"/etc/sudoers.d/*         /etc/sudoers.d/
-cp -vfr "${fdir}"/etc/sysctl.d/*          /etc/sysctl.d/
-cp -vfr "${fdir}"/etc/systemd/logind.conf /etc/systemd/
-cp -vfr "${fdir}"/etc/systemd/system/*    /etc/systemd/system/
-cp -vfr "${fdir}"/etc/udev/rules.d/*      /etc/udev/rules.d/
+cp -vfr "${fdir}"/etc/acpi/handler.sh         /etc/acpi/
+cp -vfr "${fdir}"/etc/pulse/*                 /etc/pulse/
+cp -vfr "${fdir}"/etc/ssh/sshd_config         /etc/ssh/
+cp -vfr "${fdir}"/etc/sudoers.d/*             /etc/sudoers.d/
+cp -vfr "${fdir}"/etc/sysctl.d/*              /etc/sysctl.d/
+cp -vfr "${fdir}"/etc/systemd/logind.conf     /etc/systemd/
+cp -vfr "${fdir}"/etc/systemd/system/*        /etc/systemd/system/
+cp -vfr "${fdir}"/etc/udev/rules.d/*          /etc/udev/rules.d/
+cp -vfr "${fdir}"/usr/share/dbus-1/system.d/* /usr/share/dbus-1/system.d
 
 groupadd -r pulse
 groupadd -r pulse-access
@@ -151,6 +152,8 @@ for i in /etc/pulse/*.pa; do
           print}' \
           "${i}"
 done
+
+systemctl --global disable pulseaudio.service pulseaudio.socket
 
 ln -sfv /usr/share/zoneinfo/Europe/Istanbul /etc/localtime
 
