@@ -129,6 +129,7 @@ cat << EOF > /etc/ssh/banner
 
 EOF
 
+cp -vfr "${fdir}"/etc/X11/Xwrapper.config     /etc/X11/
 cp -vfr "${fdir}"/etc/acpi/handler.sh         /etc/acpi/
 cp -vfr "${fdir}"/etc/pulse/*                 /etc/pulse/
 cp -vfr "${fdir}"/etc/ssh/sshd_config         /etc/ssh/
@@ -138,6 +139,9 @@ cp -vfr "${fdir}"/etc/systemd/logind.conf     /etc/systemd/
 cp -vfr "${fdir}"/etc/systemd/system/*        /etc/systemd/system/
 cp -vfr "${fdir}"/etc/udev/rules.d/*          /etc/udev/rules.d/
 cp -vfr "${fdir}"/usr/share/dbus-1/system.d/* /usr/share/dbus-1/system.d
+
+cp -vfr "${fdir}"/etc/X11/xorg.conf.d/01-intel-thinkpad.conf \
+ /etc/X11/xorg.conf.d/
 
 groupadd -r pulse
 groupadd -r pulse-access
@@ -302,5 +306,22 @@ cd ../; rm -rf yay/
 yay -Syu --noconfirm \
  `cat /mss/repo/install/pkglist/user/{base,t61}.txt`
 
-# 3.2 > cleanup
-pacman -Qtdq | sudo pacman -Rns -
+# 3.2 > thinkfan
+sudo -i
+tempfiles="$(/bin/ls -w1 /sys/class/hwmon/hwmon*/temp*_label)"
+fintemp="$(grep -l Package    ${tempfiles} \
+           || grep -l Core\ 0 ${tempfiles} \
+           || grep -l Tctl    ${tempfiles} )"
+
+hwmonfile="$(echo "${fintemp}" | sed 's/label/input/g')"
+
+sed -e "s|REPLACEMEHWMON|${hwmonfile}|g" \
+ /mss/repo/dir/etc/thinkfan.conf > /etc/thinkfan.conf
+
+systemctl enable thinkfan
+
+# 3.3 > cleanup
+pacman -Qtdq | pacman -Rns - --noconfirm
+pacman -Scc --noconfirm
+
+reboot
