@@ -18,6 +18,7 @@
 import argparse
 import socket
 import ssl
+import urllib.request, urllib.parse
 from os        import popen, getloadavg, listdir, path
 from os.path   import exists
 from sys       import stdout, argv
@@ -62,12 +63,16 @@ address = (host, port)
 
 # 1.4 > mgm
 if not tmux:
-    mgmhost = 'servis.mgm.gov.tr'
-    mgmreq  = '/web/sondurumlar?merkezid=' + area
-    mgmget  = 'GET ' + mgmreq + ' HTTP/1.1\r\n'
-    mgmget += 'Host: servis.mgm.gov.tr\r\n'
-    mgmget += 'Origin: https://mgm.gov.tr\r\n'
-    mgmget += '\r\n'
+    doviz_url = 'https://www.doviz.com/api/v10/converterItems'
+
+    binan_url = 'https://api.binance.com/api/v3/ticker/price?'
+    binan_params = urllib.parse.urlencode({'symbol': 'USDTTRY'})
+    binan_req = binan_url + binan_params
+
+    mgm_url = 'https://servis.mgm.gov.tr/web/sondurumlar?'
+    mgm_params = urllib.parse.urlencode({'merkezid': area})
+    mgm_headers = { 'Origin': 'https://mgm.gov.tr' }
+    mgm_req = mgm_url + mgm_params
 
 # 1.5 > pseudofs paths
 bat0_path = '/sys/class/power_supply/BAT0/'
@@ -242,29 +247,20 @@ def sb_weather():
         context = ssl.create_default_context()
         context.options |= 0x4
 
-        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        clienttls = context.wrap_socket(socket.socket(socket.AF_INET,
-                                                      socket.SOCK_STREAM),
-                                        server_side = False,
-                                        server_hostname = mgmhost)
+        mgm_data = urllib.request.Request(mgm_req, headers=mgm_headers)
 
         try:
-            mgmip = socket.gethostbyname(mgmhost)
+            mgm_data = loads(urllib.request.urlopen(mgm_data,
+                                                    context=context
+                                                   ).read().decode())[0]
         except:
             weat = 'no conn'
             sleep(10)
         else:
-            clienttls.connect((mgmip, 443))
-            clienttls.send(mgmget.encode())
-
-            data = clienttls.recv(1024)
-            cutat = int(data.decode().find('\r\n\r\n')) + 4
-            data = loads(data[cutat:])[0]
-
-            coderaw, tempraw, windraw, rainraw = (data['hadiseKodu'],
-                                                  data['sicaklik'],
-                                                  data['ruzgarHiz'],
-                                                  data['yagis00Now'])
+            coderaw, tempraw, windraw, rainraw = (mgm_data['hadiseKodu'],
+                                                  mgm_data['sicaklik'],
+                                                  mgm_data['ruzgarHiz'],
+                                                  mgm_data['yagis00Now'])
 
             temp = f"{tempraw}°" if str(tempraw) != "-9999" else "n/a"
             code = coderaw.lower() if str(coderaw) != "-9999" else "n/a"
@@ -272,6 +268,51 @@ def sb_weather():
             rain = f"{rainraw}mm" if str(rainraw) != "-9999" else "n/a"
  
             weat = f"{temp} {code} {wind} {rain}"
+
+            sleep(interval)
+
+def sb_doviz():
+    global doviz
+    doviz = 'cookin'
+
+    while True:
+        doviz_data = urllib.request.Request(doviz_url)
+
+        try:
+            doviz_data = loads(urllib.request.urlopen(doviz_data,
+                                                          ).read().decode())
+        except:
+            doviz = 'no conn'
+            sleep(10)
+        else:
+            if doviz_data['error'] == False:
+                doviz_data = doviz_data['data']['C']['USD']
+
+                doviz_buy = doviz_data['buying']
+                doviz_sell = doviz_data['selling']
+                doviz = "{:.2f}".format((doviz_buy + doviz_sell) / 2.0)
+            else:
+                doviz = 'error'
+
+            sleep(interval)
+
+def sb_binan():
+    global binan
+    binan = 'cookin'
+
+    while True:
+        binan_data = urllib.request.Request(binan_req)
+
+
+        try:
+            binan_data = float(loads(urllib.request.urlopen(binan_data,
+                                                           ).read().decode()
+                                    )['price'].rstrip('0'))
+        except:
+            binan = 'no conn'
+            sleep(10)
+        else:
+            binan = binan_data
 
             sleep(interval)
 
@@ -354,17 +395,25 @@ def main():
 
         print_method(finprint)
     else:
-        # 3.2 > separate thread for weather
+        # 3.2 > separate thread for weather and tickers 
         weather_thread = Thread(target=sb_weather)
+        doviz_thread = Thread(target=sb_doviz)
+        binan_thread = Thread(target=sb_binan)
+
         weather_thread.daemon = True
+        doviz_thread.daemon = True
+        binan_thread.daemon = True
+
         weather_thread.start()
+        doviz_thread.start()
+        binan_thread.start()
 
         while True:
             finprint  = f"\" {sb_bw()} ¦ {sb_lavg()} {sb_mem()} {sb_temp()}"
 
             if is_thinkpad: finprint += f"/{sb_ibmfan()} {sb_bat()}"
 
-            finprint += f" ¦ {weat} ¦ {sb_mpd()} ¦ {sb_dat()} \""
+            finprint += f" ¦ {weat} ¦ {doviz}/{binan} ¦ {sb_mpd()} ¦ {sb_dat()} \""
 
             print_method(finprint)
 
