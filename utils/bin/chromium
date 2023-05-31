@@ -1,11 +1,11 @@
 #!/bin/sh
 exec \
  /usr/lib/chromium/chromium \
- --enable-features=CSSColorSchemeUARendering \
- --enable-features=VaapiVideoDecode          \
- --enable-features=WebUIDarkMode             \
- --enable-gpu-rasterization                  \
+ --disable-features=VaapiVideoDecode         \
+ --disable-gpu-rasterization                 \
  --disable-smooth-scrolling                  \
+ --enable-features=CSSColorSchemeUARendering \
+ --enable-features=WebUIDarkMode             \
  --force-dark-mode                           \
  --wm-window-animations-disabled             \
  --animation-duration-scale=0                \
