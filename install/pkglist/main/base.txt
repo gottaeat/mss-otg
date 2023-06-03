@@ -16,6 +16,7 @@ feh
 ffmpeg
 fontconfig
 freetype2
+gimp
 git
 go
 gpm
@@ -23,6 +24,7 @@ hashcat
 htop
 imagemagick
 intel-ucode
+iptables-nft
 irssi
 iw
 jq
@@ -38,8 +40,8 @@ libxft
 libxinerama
 libxrender
 links
-linux
 linux-firmware
+linux-zen
 lsof
 lvm2
 maim
