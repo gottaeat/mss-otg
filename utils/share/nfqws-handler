@@ -2,19 +2,17 @@
 nfqwspid="$(pidof nfqws)"
 iface="$(grep 00000000 /proc/net/route | awk 'NR==1 {print $1}')"
 
-nfqws_iptb(){
- iptables -t mangle "-${1}" POSTROUTING \
-  -p tcp -o "${2}"                         \
-  -m multiport --dports 80,443             \
-  -m connbytes --connbytes-dir=original    \
-  --connbytes-mode=packets --connbytes 1:4 \
-  -m mark ! --mark 0x40000000/0x40000000   \
-  -j NFQUEUE --queue-num 200 --queue-bypass >/dev/null 2>&1
-}
-
 case "$1" in
  start)
-  nfqws_iptb I "${iface}"
+  nft 'create chain inet myfilter nfqws {                       \
+   type filter hook postrouting priority mangle; policy accept; \
+  }'
+
+  nft add rule inet myfilter nfqws \
+   oifname "${iface}" tcp dport \{80,443\} \
+   ct original packets 1-4                 \
+   mark and 0x40000000 != 0x40000000       \
+   queue num 200 bypass
 
   nfqws \
    --uid=0:0                      \
@@ -32,7 +30,7 @@ case "$1" in
    --dpi-desync-ttl=6 >/dev/null 2>&1 &
  ;;
  stop)
-  nfqws_iptb D "${iface}"
+  nft flush chain inet myfilter nfqws
 
   for i in ${nfqwspid}; do
    kill -TERM "${i}" || kill -KILL "${i}"
