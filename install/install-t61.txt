@@ -159,6 +159,9 @@ done
 
 systemctl --global disable pulseaudio.service pulseaudio.socket
 
+sed -i -e 's|kernel.sysrq = 16|kernel.sysrq = 1|g' \
+ /usr/lib/sysctl.d/50-default.conf
+
 ln -sfv /usr/share/zoneinfo/Europe/Istanbul /etc/localtime
 
 # 2.2.1 > configure bind
@@ -208,32 +211,38 @@ mount /home/mss
 
 visudo
 
-# 2.2.5 > iptables
-for i in `cat /proc/net/ip_tables_names`; do
- iptables -t "${i}" --flush        &&
- iptables -t "${i}" --delete-chain &&
- iptables -t "${i}" --zero
-done
+# 2.2.5 > nftables
+nft flush ruleset
+nft add table inet myfilter
 
-iptables -A OUTPUT -j ACCEPT
-iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-iptables -A INPUT -i lo -j ACCEPT
-iptables -A INPUT ! -i lo -d 127.0.0.0/8 -j DROP
-iptables -A INPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT
-iptables -A INPUT -p tcp --dport 1337  -j ACCEPT
-iptables -A INPUT -p tcp --dport 1338  -j ACCEPT
-iptables -A INPUT -p tcp --dport 1935  -j ACCEPT
-iptables -A INPUT -p tcp --dport 3131  -j ACCEPT
-iptables -A INPUT -p tcp --dport 443   -j ACCEPT
-iptables -A INPUT -p tcp --dport 53    -j ACCEPT
-iptables -A INPUT -p tcp --dport 80    -j ACCEPT
-iptables -A INPUT -p tcp --dport 8000  -j ACCEPT
-iptables -A INPUT -p tcp --dport 9091  -j ACCEPT
-iptables -A INPUT -p udp --dport 53    -j ACCEPT
-iptables -A INPUT   -j DROP
-iptables -A FORWARD -j DROP
+nft 'create chain inet myfilter input {    \
+ type filter hook input priority filter;   \
+ policy drop;                              \
+}'
 
-iptables-save -f /etc/iptables/iptables.rules
+nft 'create chain inet myfilter forward {  \
+ type filter hook forward priority filter; \
+ policy drop;                              \
+}'
+
+nft 'create chain inet myfilter output {   \
+ type filter hook output priority filter;  \
+ policy accept;                            \
+}'
+
+nft 'add rule inet myfilter input ct state established,related accept'
+nft 'add rule inet myfilter input ct state invalid drop'
+nft 'add rule inet myfilter input iifname "lo" accept'
+nft 'add rule inet myfilter input iifname != "lo" ip daddr 127.0.0.0/8 drop'
+nft 'add rule inet myfilter input icmp type echo-request accept'
+
+nft 'add rule inet myfilter input \
+ tcp dport {443,53,80,1337,1338,1935,3131,8000,9091} accept'
+
+nft add rule inet myfilter input udp dport 53 accept
+
+printf '%s\n\n' 'flush ruleset' > /etc/nftables.conf
+nft -s list ruleset >> /etc/nftables.conf
 
 # 2.2.5.1 > nfqws
 git clone --depth=1 https://github.com/bol-van/zapret
@@ -258,9 +267,9 @@ cd ../../; rm -rf zapret/
 systemctl enable NetworkManager
 systemctl enable acpid
 systemctl enable gpm
-systemctl enable iptables
+systemctl enable nftables
 systemctl enable named
-systemctl enable nfqws
+#systemctl enable nfqws
 systemctl enable ntpd
 systemctl enable pulseaudio
 systemctl enable sshd
@@ -269,6 +278,8 @@ systemctl enable transmission
 
 systemctl mask mpd.socket
 systemctl enable mpd.service
+
+systemctl mask iptables
 
 # 2.2.7 > bootloader
 mkinitcpio -P
@@ -279,7 +290,8 @@ swapoffs="$(filefrag -v "/mnt/mss/stuff/techy-bits/swapfile" \
             | awk '$1=="0:" {print substr($4, 1, length($4)-2)}')"
 
 cmdline="cryptdevice=/dev/sda2:cryptlvm root=/dev/arch/rootfs"
-cmdline="${cmdline} mitigations=off"
+cmdline="${cmdline} rw mitigations=off"
+cmdline="${cmdline} preempt=full"
 cmdline="${cmdline} processor.ignore_ppc=1 intel_pstate=disable"
 cmdline="${cmdline} thinkpad_acpi.fan_control=1"
 cmdline="${cmdline} resume=${swapuuid} resume_offset=${swapoffs}"
