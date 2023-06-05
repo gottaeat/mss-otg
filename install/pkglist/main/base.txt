@@ -74,6 +74,7 @@ proxychains-ng
 pulseaudio
 pulseaudio-alsa
 python
+python-requests
 reaver
 redshift
 rsync
