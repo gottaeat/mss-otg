@@ -1,9 +1,1 @@
-chromium-widevine
-dynamips
-gns3-gui
-gns3-server
-ioquake3-git
-quakespasm-spiked-git
 thinkfan
-ubridge
-ungoogled-chromium-bin

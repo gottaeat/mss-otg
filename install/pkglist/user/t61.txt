@@ -1,3 +1,1 @@
-chromium-widevine
 thinkfan
-ungoogled-chromium-bin
