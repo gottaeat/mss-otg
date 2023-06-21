@@ -24,7 +24,7 @@ cryptsetup \
 # 1.3 > lvm
 pvcreate /dev/mapper/arch
 vgcreate arch /dev/mapper/arch
-lvcreate --size 25G   arch --name rootfs
+lvcreate --size 10G   arch --name rootfs
 lvcreate -l +100%FREE arch --name stuff
 
 mkfs.ext4 /dev/arch/rootfs -L arch-rootfs
