@@ -204,7 +204,7 @@ useradd \
  -u 1001      \
  -G adbusers,adm,audio,disk,floppy,ftp,games,http,input,kmem,kvm,log,lp,mail,\
 optical,proc,pulse-access,rfkill,scanner,smmsp,storage,sys,systemd-journal,tty,\
-users,utmp,uucp,video,wheel,wireshark \
+libvirt,users,utmp,uucp,video,wheel,wireshark \
  mss
 
 passwd
