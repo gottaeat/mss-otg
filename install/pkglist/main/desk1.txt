@@ -12,6 +12,7 @@ lib32-vulkan-icd-loader
 lib32-vulkan-radeon
 libvirt
 mangohud
+mesa-vdpau
 openmw
 qemu-desktop
 radeontop
