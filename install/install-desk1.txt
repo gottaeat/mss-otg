@@ -348,6 +348,7 @@ yay -Syu --noconfirm \
  `cat /mss/repo/install/pkglist/user/{base,desk1}.txt`
 
 # 3.2 > libvirt network
+sudo -i
 virsh -c qemu:///system net-autostart --network default
 
 # 3.3 > cleanup
