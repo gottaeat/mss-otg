@@ -1,14 +1,17 @@
 #!/bin/sh
 exec \
  /usr/lib/chromium/chromium \
- --disable-features=VaapiVideoDecode         \
- --disable-gpu-rasterization                 \
+ --animation-duration-scale=0                \
  --disable-smooth-scrolling                  \
  --enable-features=CSSColorSchemeUARendering \
  --enable-features=WebUIDarkMode             \
  --force-dark-mode                           \
  --wm-window-animations-disabled             \
- --animation-duration-scale=0                \
+\
  --disk-cache-dir=/dev/null                  \
  --disk-cache-size=1                         \
+\
+ --enable-gpu-rasterization                  \
+ --enable-features=VaapiVideoDecode          \
+\
  "${@}"
