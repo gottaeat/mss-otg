@@ -1,5 +1,5 @@
 project('utils',
- version: '71',
+ version: '72',
  license: 'GPL3',
  default_options: [
   'buildtype=plain',
@@ -17,6 +17,7 @@ files_bin = [
  'bin/comptoggle',
  'bin/dn',
  'bin/dwmenu',
+ 'bin/fetch',
  'bin/ldir',
  'bin/maimclip',
  'bin/maimcrop',
