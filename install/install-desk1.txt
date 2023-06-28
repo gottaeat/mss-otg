@@ -164,6 +164,10 @@ for i in /etc/pulse/*.pa; do
           "${i}"
 done
 
+sed -i -e '/module-suspend-on-idle/d' \
+ /etc/pulse/default.pa \
+ /etc/pulse/system.pa
+
 systemctl --global disable pulseaudio.service pulseaudio.socket
 
 sed -i -e 's|kernel.sysrq = 16|kernel.sysrq = 1|g' \
