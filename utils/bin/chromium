@@ -8,6 +8,8 @@ exec \
  --force-dark-mode                           \
  --wm-window-animations-disabled             \
 \
+ --no-default-browser-check                  \
+\
  --disk-cache-dir=/dev/null                  \
  --disk-cache-size=1                         \
 \
