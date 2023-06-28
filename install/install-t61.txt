@@ -323,6 +323,7 @@ cmdline="cryptdevice=/dev/sda2:cryptlvm root=/dev/arch/rootfs"
 cmdline="${cmdline} rw mitigations=off"
 cmdline="${cmdline} preempt=full"
 cmdline="${cmdline} processor.ignore_ppc=1 intel_pstate=disable"
+cmdline="${cmdline} cpufreq.default_governor=schedutil"
 cmdline="${cmdline} thinkpad_acpi.fan_control=1"
 cmdline="${cmdline} resume=${swapuuid} resume_offset=${swapoffs}"
 

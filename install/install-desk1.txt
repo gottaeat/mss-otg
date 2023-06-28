@@ -324,6 +324,7 @@ cmdline="${cmdline} cryptdevice=/dev/sda2:cryptlvm root=/dev/arch/rootfs"
 cmdline="${cmdline} rw mitigations=off"
 cmdline="${cmdline} preempt=full"
 cmdline="${cmdline} amd_pstate=active"
+cmdline="${cmdline} cpufreq.default_governor=performance"
 cmdline="${cmdline} resume=${swapuuid} resume_offset=${swapoffs}"
 
 efibootmgr \
