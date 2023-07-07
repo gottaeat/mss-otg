@@ -1,5 +1,5 @@
 project('landfill', 'c',
- version: '25',
+ version: '28',
  license: 'MIT',
  default_options: [
   'buildtype=plain',
@@ -116,7 +116,7 @@ dwm_extra = [
  '-DXINERAMA',
  '-D_BSD_SOURCE',
  '-D_DEFAULT_SOURCE',
- '-D_POSIX_C_SOURCE=200809L'
+ '-D_XOPEN_SOURCE=700L'
 ]
 
 st_extra = [
