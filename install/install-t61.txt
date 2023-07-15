@@ -265,7 +265,7 @@ nft 'add rule inet myfilter input iifname != "lo" ip daddr 127.0.0.0/8 drop'
 nft 'add rule inet myfilter input icmp type echo-request accept'
 
 nft 'add rule inet myfilter input \
- tcp dport {443,53,80,1337,1338,1935,3131,8000,9091} accept'
+ tcp dport {443,53,80,1337,1338,1935,3131,6666,8000,9091} accept'
 
 nft 'add rule inet myfilter input \
  udp dport {53,67,68} accept'
