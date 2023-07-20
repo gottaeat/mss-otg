@@ -14,6 +14,9 @@ set colorcolumn=80
 set laststatus=2
 set statusline=%F%r%m\ \|\ %{wordcount().words}\ words
 
+set tabstop=4
+set expandtab
+
 syntax on
 au BufNewFile,BufFilePre,BufRead *.md set filetype=markdown
 
