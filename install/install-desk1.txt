@@ -228,59 +228,10 @@ mount /home/mss
 visudo
 
 # 2.2.5 > nftables
-nft flush ruleset
-nft add table inet myfilter
-nft add table ip mynat
-
-nft 'create chain inet myfilter input {    \
- type filter hook input priority filter;   \
- policy drop;                              \
-}'
-
-nft 'create chain inet myfilter forward {  \
- type filter hook forward priority filter; \
- policy accept;                            \
-}'
-
-nft 'create chain inet myfilter output {   \
- type filter hook output priority filter;  \
- policy accept;                            \
-}'
-
-nft 'create chain ip mynat output {        \
- type nat hook output priority -100;       \
- policy accept;                            \
-}'
-
-nft 'create chain ip mynat prerouting {    \
- type nat hook prerouting priority -100;   \
- policy accept;                            \
-}'
-
-nft 'add rule inet myfilter input ct state established,related accept'
-nft 'add rule inet myfilter input ct state invalid drop'
-nft 'add rule inet myfilter input iifname "lo" accept'
-nft 'add rule inet myfilter input iifname != "lo" ip daddr 127.0.0.0/8 drop'
-nft 'add rule inet myfilter input icmp type echo-request accept'
-
-nft 'add rule inet myfilter input \
- tcp dport {443,53,80,1337,1338,1935,3131,6666,8000,9091} accept'
-
-nft 'add rule inet myfilter input \
- udp dport {53,67,68} accept'
-
-nft 'add rule ip mynat output     oifname != "virbr0" \
- ip daddr 127.0.0.1 tcp dport 80 redirect to :1337'
-nft 'add rule ip mynat output     oifname != "virbr0" \
- ip daddr 127.0.0.1 tcp dport 443 redirect to :1338'
-
-nft 'add rule ip mynat prerouting iifname != "virbr0" \
- tcp dport 80 redirect to :1337'
-nft 'add rule ip mynat prerouting iifname != "virbr0" \
- tcp dport 443 redirect to :1338'
-
-printf '%s\n\n' 'flush ruleset' > /etc/nftables.conf
-nft -s list ruleset >> /etc/nftables.conf
+setfirewall.py \
+ --tcp 53 80 443 1337 1338 1935 3131 6666 8000 9091 \
+ --udp 53                                           \
+ --desktop
 
 # 2.2.5.1 > nfqws
 git clone --depth=1 https://github.com/bol-van/zapret
