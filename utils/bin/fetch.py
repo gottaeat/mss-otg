@@ -1,85 +1,138 @@
 #!/usr/bin/python
+# pylint: disable=missing-module-docstring,missing-function-docstring
 import re
 import os
 import socket
 import datetime
 
-# colors
-c_res='\033[0;39m'
-cb_red='\033[1;31m'
-cb_blu='\033[1;34m'
-cb_whi='\033[1;37m'
 
-# distro
-osrel_data = open('/etc/os-release', 'rb')
-osrel = osrel_data.read().decode().split('\n')
-osrel_data.close()
+# pylint: disable=missing-class-docstring,too-few-public-methods
+class Colors:
+    C_RES = "\033[0;39m"
+    C_RED = "\033[1;31m"
+    C_BLU = "\033[1;34m"
+    C_WHI = "\033[1;37m"
 
-if osrel[-1] == '': osrel = osrel[:-1]
-if osrel[0] == '': osrel = osrel[1:]
+    def __init__(self):
+        pass
 
-osrel_parsed = {}
-for i in osrel:
-    i = i.split('=')
-    osrel_parsed[i[0]] = re.sub(r'\'|\"', '', i[1])
 
-distro = osrel_parsed['PRETTY_NAME'].lower()
+# pylint: disable=too-many-instance-attributes
+class Fetch:
+    def __init__(self):
+        self.distro = None
+        self.hostname = None
+        self.kernel = None
+        self.cpuname = None
+        self.cpucores = None
+        self.memtotal = None
+        self.memavail = None
+        self.memfree = None
+        self.memcache = None
+        self.uptime = None
 
-# host
-hostname = socket.gethostname()
+    def _get_distro(self):
+        # pylint: disable=invalid-name
+        with open("/etc/os-release", "r", encoding="utf-8") as f:
+            osrel = f.read().split("\n")
 
-# kernel
-kernel = os.uname().release
+        if osrel[-1] == "":
+            osrel = osrel[:-1]
+        if osrel[0] == "":
+            osrel = osrel[1:]
 
-# cpu
-cpu_data = open('/proc/cpuinfo', 'r')
+        osrel_parsed = {}
+        for i in osrel:
+            i = i.split("=")
+            osrel_parsed[i[0]] = re.sub(r"\'|\"", "", i[1])
 
-model_name = ''
-for line in cpu_data.readlines():
-    if 'model name' in line:
-        model_name = line.split('\t: ')[1].rstrip('\n')
-        break
+        self.distro = osrel_parsed["PRETTY_NAME"].lower()
 
-cpu_data.close()
+    def _get_hostname(self):
+        self.hostname = socket.gethostname()
 
-cpuname = re.sub(r'with.*|@.*|AMD|Intel|\(R\)|\(TM\)|CPU|Processor|.-Core|..-Core',
-                 '', model_name).strip(' ').lower()
+    def _get_kernel(self):
+        self.kernel = os.uname().release
 
-while '  ' in cpuname:
-    cpuname = re.sub(r'  ', ' ', cpuname)
+    def _get_cpu(self):
+        # pylint: disable=invalid-name
+        with open("/proc/cpuinfo", "r", encoding="utf-8") as f:
+            model_name = ""
+            for line in f.readlines():
+                if "model name" in line:
+                    model_name = line.split("\t: ")[1].rstrip("\n")
+                    break
 
-cpucores = str(len(os.sched_getaffinity(0)))
-cpu = f"{cpuname} ({cpucores})"
+        cpuname = (
+            re.sub(
+                r"with.*|@.*|AMD|Intel|\(R\)|\(TM\)|CPU|Processor|.-Core|..-Core",
+                "",
+                model_name,
+            )
+            .strip(" ")
+            .lower()
+        )
 
-# mem
-def memstrip(line):
-    return int(line.split(':')[1].lstrip(' ').rstrip(' kB\n'))
+        while "  " in cpuname:
+            cpuname = re.sub(r"  ", " ", cpuname)
 
-mem_data = open('/proc/meminfo', 'r')
-memlines = mem_data.readlines()
-mem_data.close()
+        self.cpuname = cpuname
+        self.cpucores = str(len(os.sched_getaffinity(0)))
 
-memfull = {}
-for i in range(0, len(memlines)):
-    isplit = memlines[i].split(':')
-    memfull[isplit[0]] = int(isplit[1].lstrip(' ').rstrip(' kB\n'))
+    @staticmethod
+    def _memstrip(line):
+        return int(line.split(":")[1].lstrip(" ").rstrip(" kB\n"))
 
-memtotal = int(memfull['MemTotal'] / 1024)
-memavail = int(memfull['MemAvailable'] / 1024)
-memfree  = int(memfull['MemFree'] / 1024)
-memcache = int((memfull['Cached'] + memfull['Buffers'] + memfull['SReclaimable']) / 1024)
-mem = f"{memavail}/{memtotal}m ({memfree}+{memcache})"
+    def _get_mem(self):
+        # pylint: disable=invalid-name
+        with open("/proc/meminfo", "r", encoding="utf-8") as f:
+            memlines = f.readlines()
 
-# uptime
-uptime_data = open('/proc/uptime', 'r')
-uptime = datetime.timedelta(seconds=int(float(uptime_data.read().split(' ')[0])))
+        memfull = {}
+        for _, line in enumerate(memlines):
+            isplit = line.split(":")
+            memfull[isplit[0]] = int(isplit[1].lstrip(" ").rstrip(" kB\n"))
 
-# final
-finmsg  = f" {cb_whi}→ {cb_red}host   {cb_blu}:{c_res} {hostname}\n"
-finmsg += f" {cb_whi}→ {cb_red}os     {cb_blu}:{c_res} {distro}\n"
-finmsg += f" {cb_whi}→ {cb_red}kernel {cb_blu}:{c_res} {kernel}\n"
-finmsg += f" {cb_whi}→ {cb_red}cpu    {cb_blu}:{c_res} {cpu}\n"
-finmsg += f" {cb_whi}→ {cb_red}mem    {cb_blu}:{c_res} {mem}\n"
-finmsg += f" {cb_whi}→ {cb_red}uptime {cb_blu}:{c_res} {uptime}\n"
+        self.memtotal = int(memfull["MemTotal"] / 1024)
+        self.memavail = int(memfull["MemAvailable"] / 1024)
+        self.memfree = int(memfull["MemFree"] / 1024)
+        self.memcache = int(
+            (memfull["Cached"] + memfull["Buffers"] + memfull["SReclaimable"]) / 1024
+        )
 
-print(finmsg,end='')
+    def _get_uptime(self):
+        # pylint: disable=invalid-name
+        with open("/proc/uptime", "r", encoding="utf-8") as f:
+            self.uptime = datetime.timedelta(seconds=int(float(f.read().split(" ")[0])))
+
+    def collect(self):
+        self._get_distro()
+        self._get_hostname()
+        self._get_kernel()
+        self._get_cpu()
+        self._get_mem()
+        self._get_uptime()
+
+
+if __name__ == "__main__":
+    fetch = Fetch()
+    fetch.collect()
+
+    distro = fetch.distro
+    hostname = fetch.hostname
+    kernel = fetch.kernel
+    uptime = fetch.uptime
+
+    cpu = f"{fetch.cpuname} ({fetch.cpucores})"
+    mem = f"{fetch.memavail}/{fetch.memtotal}m ({fetch.memfree}+{fetch.memcache})"
+
+    c = Colors()
+
+    finmsg = f" {c.C_WHI}→ {c.C_RED}host   {c.C_BLU}:{c.C_RES} {hostname}\n"
+    finmsg += f" {c.C_WHI}→ {c.C_RED}os     {c.C_BLU}:{c.C_RES} {distro}\n"
+    finmsg += f" {c.C_WHI}→ {c.C_RED}kernel {c.C_BLU}:{c.C_RES} {kernel}\n"
+    finmsg += f" {c.C_WHI}→ {c.C_RED}cpu    {c.C_BLU}:{c.C_RES} {cpu}\n"
+    finmsg += f" {c.C_WHI}→ {c.C_RED}mem    {c.C_BLU}:{c.C_RES} {mem}\n"
+    finmsg += f" {c.C_WHI}→ {c.C_RED}uptime {c.C_BLU}:{c.C_RES} {uptime}\n"
+
+    print(finmsg, end="")
