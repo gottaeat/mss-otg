@@ -127,20 +127,24 @@ def get_mem():
 def get_temp():
     hwmon_dir = "/sys/class/hwmon/"
     labels = ["Tctl", "Package", "Core 0"]
+
     tempfile_list, tempfile = [], None
     for d in os.listdir(hwmon_dir):
         for file in os.listdir(hwmon_dir + d):
             fullpath = f"{hwmon_dir}{d}/{file}"
             if "_label" in fullpath:
                 tempfile_list.append(fullpath)
+
     for _, file in enumerate(tempfile_list):
         with open(file, "r", encoding="utf-8") as f:
             f_contents = re.sub(r"\n", "", f.read())
         if any(label in f_contents for label in labels):
             tempfile = re.sub(r"label", "input", file)
             break
+
     if tempfile is None:
         return None
+
     with open(tempfile, "r", encoding="utf-8") as f:
         return f"{int(int(f.read()) / 1000)}c"
 
