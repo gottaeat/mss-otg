@@ -1,422 +1,388 @@
 #!/usr/bin/python
-#statusbar.py
-#Copyright (C) 2023 gottaeat
-#
-#This program is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
-#
-#This program is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
-#
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+# pylint: disable=missing-module-docstring,missing-class-docstring,missing-function-docstring
+# pylint: disable=invalid-name
+# pylint: disable=too-few-public-methods
+# pylint: disable=global-statement
 import argparse
+import json
+import os
+import re
 import socket
 import ssl
-import urllib.request, urllib.parse
-from os        import popen, getloadavg, listdir, path
-from os.path   import exists
-from sys       import stdout, argv
-from re        import sub
-from time      import sleep, strftime, gmtime
-from json      import loads
+import sys
+import time
+import urllib.parse
+import urllib.request
+
 from threading import Thread
 
-# 1 > vars
-# 1.1 > parse inputs
-parser = argparse.ArgumentParser(description='statusbar for x11 and tmux.')
-parser.add_argument('--tmux', action = 'store_true')
-parser.add_argument('--debug', action = 'store_true')
-parser.add_argument('--host', type = str, default = 'localhost')
-parser.add_argument('--port', type = int, default = 6600)
 
-tmux = parser.parse_known_args()[0].tmux
+# mpd
+class MPD:
+    def __init__(self, mpd_host, mpd_port):
+        self._address = (socket.gethostbyname(mpd_host), mpd_port)
 
-if not tmux:
-    parser.add_argument('--area', type = str, required = True)
-    parser.add_argument('--interval', type = int, default = 60)
+    def _check_status(self):
+        try:
+            check = socket.socket()
+            check.connect(self._address)
+        except ConnectionRefusedError:
+            return (False, "dead")
 
-args = parser.parse_args()
+        mpd_check = check.recv(1024).decode()
+        if "OK MPD" in mpd_check:
+            status = (True, "alive")
+        else:
+            status = (False, "not MPD")
 
-if not tmux:
-    area = args.area
-    interval = args.interval
-
-debug = args.debug
-
-if debug and tmux:
-    raise Exception("tmux and debug args cannot be set at the same time.")
-
-# 1.2 > tmux escapes
-cs, cr = '#[fg=white bg=black]', '#[default]'
-cc = cr + ' ' + cs
-
-# 1.3 > set address for mpd
-host = socket.gethostbyname(args.host)
-port = args.port
-address = (host, port)
-
-# 1.4 > mgm
-if not tmux:
-    doviz_url = 'https://www.doviz.com/api/v10/converterItems'
-
-    binan_url = 'https://api.binance.com/api/v3/ticker/price?'
-    binan_params = urllib.parse.urlencode({'symbol': 'USDTTRY'})
-    binan_req = binan_url + binan_params
-
-    mgm_url = 'https://servis.mgm.gov.tr/web/sondurumlar?'
-    mgm_params = urllib.parse.urlencode({'merkezid': area})
-    mgm_headers = { 'Origin': 'https://mgm.gov.tr' }
-    mgm_req = mgm_url + mgm_params
-
-# 1.5 > pseudofs paths
-bat0_path = '/sys/class/power_supply/BAT0/'
-meminfo_path = '/proc/meminfo'
-route_path = '/proc/net/route'
-
-if not tmux:
-    hwmonfile_path = '/sys/class/hwmon/'
-    ibmfan_path = '/proc/acpi/ibm/fan'
-    is_thinkpad =  path.isfile(ibmfan_path)
-
-# 1.6 > find file to read the package temp for the cpu from
-if not tmux:
-    tempfile_list = []
-
-    for dirs in listdir(hwmonfile_path):
-        for i in listdir(hwmonfile_path + dirs):
-            fulltemp_path = hwmonfile_path + dirs + '/' + i
-            if "_label" in fulltemp_path:
-                tempfile_list.append(fulltemp_path)
-
-    labels = ['Tctl', 'Package', 'Core 0']
-
-    for i in range(0, len(tempfile_list)):
-       tmpread = open(tempfile_list[i])
-       tmpread_contents = sub(r"\n", "", tmpread.read())
-       tmpread.close()
-
-       if any([label in tmpread_contents for label in labels]):
-           final_tempfile = sub(r"label", "input", tempfile_list[i])
-           break
-       else:
-           final_tempfile = None
-
-# 2 > funcs
-# 2.1 > applet funcs
-def mpdcheck():
-    try:
-        check = socket.socket()
-        check.connect(address)
-    except ConnectionRefusedError:
-        return False # dead
-    else:
-        mpdcheck = check.recv(1024).decode()
         check.close()
+        return status
 
-        if 'OK MPD' in mpdcheck:
-            return True # alive
-        else:
-            return False # not mpd
+    def _query(self, query):
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client.connect(self._address)
+        client.send(query.encode())
 
-def mpdparse(response):
-    final = {}
-    for line in response:
-        data = line.split(':', maxsplit=1)
-        final[data[0]] = data[1].lstrip()
+        sockfile = client.makefile(mode="r")
 
-    return final
+        raw = ""
+        while True:
+            line = sockfile.readline()
 
-def mpdquery(query):
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect(address)
-    client.send(query.encode())
+            if "OK MPD " in line:
+                continue
+            if line == "\r\n":
+                continue
+            if "OK\n" in line:
+                break
 
-    sockfile = client.makefile(mode='r')
-
-    raw = ""
-    while True:
-        line = sockfile.readline()
-
-        if "OK MPD " in line:
-            continue
-        if line == '\r\n':
-            continue
-        elif "OK\n" in line:
-            break
-        else:
             raw += line
 
-    client.close()
+        client.close()
 
-    querylist = raw.split('\n')
-    querylist.remove('')
-    return querylist
+        querylist = raw.split("\n")
+        querylist.remove("")
 
-# 2.2 > applets
-def sb_mpd():
-    if mpdcheck():
-        status  = mpdparse(mpdquery('status\n'))
-        cursong = mpdparse(mpdquery('currentsong\n'))
- 
+        return querylist
+
+    @staticmethod
+    def _parse(response):
+        final = {}
+        for line in response:
+            data = line.split(":", maxsplit=1)
+            final[data[0]] = data[1].lstrip()
+
+        return final
+
+    def run(self):
+        daemon_status = self._check_status()
+
+        if daemon_status[0] is not True:
+            return daemon_status[1]
+
+        status = self._parse(self._query("status\n"))
+        cursong = self._parse(self._query("currentsong\n"))
+
         if len(cursong) == 0:
-             return 'idle'
+            return "idle"
+
+        songname = cursong.get("Title", re.sub(r"^.*\/|\.[^.]*$", "", cursong["file"]))
+
+        if len(songname) >= 20:
+            songname = songname[0:17] + "..."
+
+        if status["state"] == "pause":
+            indic = "[#]"
         else:
-            if 'Title' in cursong.keys():
-                songname = cursong['Title']
+            cur_dur = float(cursong["duration"]) - float(status["elapsed"])
+
+            if cur_dur >= 3600:
+                timeshit = "%H:%M:%S"
             else:
-                songname = sub(r"^.*\/|\.[^.]*$", "", cursong['file'])
- 
-            if len(songname) >= 20:
-                songname = songname[0:17] + "..."
- 
-            if status['state'] == 'pause':
-                indic = '[#]'
-            else:
-                cur_dur = float(cursong['duration']) - float(status['elapsed'])
+                timeshit = "%M:%S"
 
-                if cur_dur >= 3600:
-                     timeshit = '%H:%M:%S'
-                else:
-                     timeshit = '%M:%S'
- 
-                indic = f"[{strftime(timeshit, gmtime(cur_dur))}]"
+            indic = f"[{time.strftime(timeshit, time.gmtime(cur_dur))}]"
 
-            return f"{indic} {songname}"
-    else:
-        return 'ded'
+        return f"{indic} {songname}"
 
-def sb_dat():
-    return strftime("%a %d %H:%M:%S")
 
-def sb_lavg():
-    return "{:.2f}".format(getloadavg()[0])
+# procfs
+IBMFAN_PATH = "/proc/acpi/ibm/fan"
 
-def sb_mem():
-    mem_data = open(meminfo_path, 'r')
 
-    for line in mem_data.readlines():
-        if 'MemAvailable' in line:
-            final_mem = f"{int(int(line.split()[1]) / 1024)}m"
+def get_loadavg():
+    return f"{os.getloadavg()[0]:.2f}"
 
-    mem_data.close()
 
-    return final_mem
+def get_mem():
+    with open("/proc/meminfo", "r", encoding="utf-8") as f:
+        for line in f.readlines():
+            if "MemAvailable" in line:
+                mem_info = f"{int(int(line.split()[1]) / 1024)}m"
+                break
 
-def sb_temp():
-    if final_tempfile is None:
-        temp_formatted = None
-    else:
-        temp_data  = open(final_tempfile)
-        temp_formatted = f"{int(int(temp_data.read()) / 1000)}c"
-        temp_data.close()
+    return mem_info
 
-    return temp_formatted
 
-def sb_ibmfan():
-    try:
-        ibmfan_data = open(ibmfan_path, 'r')
-    except FileNotFoundError:
+def get_temp():
+    hwmon_dir = "/sys/class/hwmon/"
+    labels = ["Tctl", "Package", "Core 0"]
+    tempfile_list, tempfile = [], None
+    for d in os.listdir(hwmon_dir):
+        for file in os.listdir(hwmon_dir + d):
+            fullpath = f"{hwmon_dir}{d}/{file}"
+            if "_label" in fullpath:
+                tempfile_list.append(fullpath)
+    for _, file in enumerate(tempfile_list):
+        with open(file, "r", encoding="utf-8") as f:
+            f_contents = re.sub(r"\n", "", f.read())
+        if any(label in f_contents for label in labels):
+            tempfile = re.sub(r"label", "input", file)
+            break
+    if tempfile is None:
         return None
-    else:
-        for line in ibmfan_data.readlines():
-            if 'speed:' in line:
+    with open(tempfile, "r", encoding="utf-8") as f:
+        return f"{int(int(f.read()) / 1000)}c"
+
+
+def get_ibmfan():
+    with open(IBMFAN_PATH, "r", encoding="utf-8") as f:
+        for line in f.readlines():
+            if "speed:" in line:
                 rpm = line.split()[1]
-            elif 'level:' in line:
-               level = line.split()[1]
+            if "level:" in line:
+                level = line.split()[1]
 
-    ibmfan_data.close()
+    if level == "disengaged":
+        level = "d"
 
-    if level == 'disengaged':
-        level = 'd'
-    elif level == 'auto':
-        level = 'a'
+    if level == "auto":
+        level = "a"
 
     return f"{rpm}/{level}"
 
-def sb_weather():
-    global weat
-    weat = 'cookin'
+
+def get_battery():
+    bat0_path = "/sys/class/power_supply/BAT0"
+
+    if not os.path.exists(f"{bat0_path}/status"):
+        return "nb"
+
+    with open(f"{bat0_path}/capacity", "r", encoding="utf-8") as f:
+        bat_cap = "%" + re.sub(r"\n", "", f.read())
+
+    with open(f"{bat0_path}/status", "r", encoding="utf-8") as f:
+        bat_stat = f.readline().strip("\n")
+
+    if bat_stat == "Discharging":
+        bat_stat = "d"
+    elif bat_stat == "Not charging":
+        bat_stat = "n"
+    else:
+        bat_stat = "c"
+
+    return f"{bat_stat}{bat_cap}"
+
+
+def get_bandwidth():
+    iface = None
+    with open("/proc/net/route", "r", encoding="utf-8") as f:
+        for line in f.readlines():
+            line = line.strip().split()
+            if line[1] == "00000000":
+                iface = line[0]
+                break
+
+    if iface is None:
+        return "no conn"
+
+    rx_path = f"/sys/class/net/{iface}/statistics/rx_bytes"
+    tx_path = f"/sys/class/net/{iface}/statistics/tx_bytes"
+
+    with open(rx_path, "r", encoding="utf-8") as f:
+        rx_before = int(f.read())
+
+    with open(tx_path, "r", encoding="utf-8") as f:
+        tx_before = int(f.read())
+
+    time.sleep(1)
+
+    with open(rx_path, "r", encoding="utf-8") as f:
+        rx_after = int(f.read())
+
+    with open(tx_path, "r", encoding="utf-8") as f:
+        tx_after = int(f.read())
+
+    rx_rate = int((rx_after - rx_before) / 1024)
+    tx_rate = int((tx_after - tx_before) / 1024)
+
+    rx_total = int(rx_after / (1024**2))
+    tx_total = int(tx_after / (1024**2))
+
+    return f"{iface} {rx_rate}↓↑{tx_rate} [{rx_total}+{tx_total}]"
+
+
+def get_date():
+    return time.strftime("%a %d %H:%M:%S")
+
+
+# API scrapes
+weather, yahoo, binance = None, None, None
+
+
+def get_weather(area):
+    global weather
+    weather = "cookin"
 
     while True:
         context = ssl.create_default_context()
         context.options |= 0x4
 
-        mgm_data = urllib.request.Request(mgm_req, headers=mgm_headers)
+        url = "https://servis.mgm.gov.tr/web/sondurumlar?"
+        params = urllib.parse.urlencode({"merkezid": area})
+        req = url + params
+
+        headers = {"Origin": "https://mgm.gov.tr"}
+        req = urllib.request.Request(req, headers=headers)
 
         try:
-            mgm_data = loads(urllib.request.urlopen(mgm_data,
-                                                    context=context
-                                                   ).read().decode())[0]
-        except:
-            weat = 'no conn'
-            sleep(10)
-        else:
-            coderaw, tempraw, windraw, rainraw = (mgm_data['hadiseKodu'],
-                                                  mgm_data['sicaklik'],
-                                                  mgm_data['ruzgarHiz'],
-                                                  mgm_data['yagis00Now'])
+            with urllib.request.urlopen(req, context=context) as f:
+                data = f.read().decode()
+        except urllib.error.HTTPError:
+            weather = "GET failed"
+            time.sleep(10)
 
-            temp = f"{tempraw}°" if str(tempraw) != "-9999" else "n/a"
-            code = coderaw.lower() if str(coderaw) != "-9999" else "n/a"
-            wind = "{:.1f}km/h".format(windraw) if str(windraw) != "-9999" else "n/a"
-            rain = f"{rainraw}mm" if str(rainraw) != "-9999" else "n/a"
- 
-            weat = f"{temp} {code} {wind} {rain}"
+        data = json.loads(data)[0]
+        code = data["hadiseKodu"]
+        temp = data["sicaklik"]
+        wind = data["ruzgarHiz"]
+        rain = data["yagis00Now"]
 
-            sleep(interval)
+        temp = f"{temp}°" if str(temp) != "-9999" else "n/a"
+        code = code.lower() if str(code) != "-9999" else "n/a"
+        wind = f"{wind:.1f}km/h" if str(wind) != "-9999" else "n/a"
+        rain = f"{rain}mm" if str(rain) != "-9999" else "n/a"
 
-def sb_doviz():
-    global doviz
-    doviz = 'cookin'
+        weather = f"{temp} {code} {wind} {rain}"
+
+        time.sleep(interval)
+
+
+def get_yahoo():
+    global yahoo
+    yahoo = "cookin"
 
     while True:
-        doviz_data = urllib.request.Request(doviz_url)
+        url = "https://query1.finance.yahoo.com/v8/finance/chart/"
+        params = urllib.parse.urlencode({"USDTRY": "X"})
+        req = url + params
 
         try:
-            doviz_data = loads(urllib.request.urlopen(doviz_data,
-                                                          ).read().decode())
-        except:
-            doviz = 'no conn'
-            sleep(10)
-        else:
-            if doviz_data['error'] == False:
-                doviz_data = doviz_data['data']['C']['USD']
+            with urllib.request.urlopen(req) as f:
+                data = json.loads(f.read().decode())
+        except urllib.error.HTTPError:
+            yahoo = "GET failed"
 
-                doviz_buy = doviz_data['buying']
-                doviz_sell = doviz_data['selling']
-                doviz = "{:.2f}".format((doviz_buy + doviz_sell) / 2.0)
-            else:
-                doviz = 'error'
+        try:
+            yahoo = data["chart"]["result"][0]["meta"]["regularMarketPrice"]
+        except KeyError:
+            yahoo = "parse failed"
 
-            sleep(interval)
+        time.sleep(interval)
 
-def sb_binan():
-    global binan
-    binan = 'cookin'
+
+def get_binance():
+    global binance
+    binance = "cooking"
 
     while True:
-        binan_data = urllib.request.Request(binan_req)
-
+        url = "https://api.binance.com/api/v3/ticker/price?"
+        params = urllib.parse.urlencode({"symbol": "USDTTRY"})
+        req = url + params
 
         try:
-            binan_data = float(loads(urllib.request.urlopen(binan_data,
-                                                           ).read().decode()
-                                    )['price'].rstrip('0'))
-        except:
-            binan = 'no conn'
-            sleep(10)
-        else:
-            binan = binan_data
+            with urllib.request.urlopen(req) as f:
+                data = f.read().decode()
+        except urllib.error.HTTPError:
+            binance = "GET failed"
 
-            sleep(interval)
+        try:
+            binance = float(json.loads(data)["price"].rstrip("0"))
+        except KeyError:
+            binance = "parse failed"
 
-def sb_bw():
-    iface = ''
-    gway_data = open(route_path, 'r')
+        time.sleep(interval)
 
-    for line in gway_data.readlines():
-        mod_line = line.strip().split()
-        if mod_line[1] == '00000000':
-            iface = mod_line[0]
 
-    gway_data.close()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Statusbar generator for tmux and X11")
+    subparsers = parser.add_subparsers(dest="command", required=True)
 
-    if len(iface) == 0:
-        sleep(1)
-        return "no conn"
-    else:
-        rxstatpath = "/sys/class/net/" + iface + "/statistics/rx_bytes"
-        txstatpath = "/sys/class/net/" + iface + "/statistics/tx_bytes"
+    tmux = subparsers.add_parser(
+        "tmux", help="Print in the tmux specific format, without a loop"
+    )
+    tmux.add_argument("--host", type=str, default="localhost", help="MPD host")
+    tmux.add_argument("--port", type=int, default=6600, help="MPD port")
 
-        rx_f = open(rxstatpath, "r"); rx1 = int(rx_f.read()); rx_f.seek(0)
-        tx_f = open(txstatpath, "r"); tx1 = int(tx_f.read()); tx_f.seek(0)
+    x11 = subparsers.add_parser("x11", help="Call xsetroot, run in a loop")
+    x11.add_argument("--area", type=int, required=True, help="MGM area code")
+    x11.add_argument(
+        "--interval", default=60, help="Interval that the APIs should be queried at"
+    )
+    x11.add_argument("--host", type=str, default="localhost", help="MPD host")
+    x11.add_argument("--port", type=int, default=6600, help="MPD port")
+    x11.add_argument(
+        "--debug",
+        action="store_true",
+        help="Print to the stdout instead of calling xsetroot",
+    )
 
-        for i in rx_f, tx_f: i.seek(0)
+    args = parser.parse_args()
 
-        sleep(1)
+    if args.command == "x11":
+        interval = args.interval
+        host = args.host
+        port = args.port
 
-        rx2 = int(rx_f.read()); tx2 = int(tx_f.read())
-        kb_rx = int((rx2 - rx1) / 1024); kb_tx = int((tx2 - tx1) / 1024)
-        t_rx  = int(rx2 / 1048576); t_tx  = int(tx2 / 1048576)
+        threads = []
 
-        return f"{iface} {kb_rx}↓↑{kb_tx} [{t_rx}+{t_tx}]"
+        binance_thread = Thread(target=get_binance, daemon=True)
+        yahoo_thread = Thread(target=get_yahoo, daemon=True)
+        weather_thread = Thread(target=get_weather, args=[args.area], daemon=True)
 
-def sb_bat():
-    if exists(bat0_path + "status"):
-        batcap_f = open(bat0_path + "capacity", "r")
-        batcap = "%" + sub(r"\n", "", batcap_f.read())
-        batcap_f.close()
+        threads.append(binance_thread)
+        threads.append(yahoo_thread)
+        threads.append(weather_thread)
 
-        batstat_f = open(bat0_path + "status", "r")
-        batstat_d = batstat_f.readline().strip('\n')
-
-        if batstat_d == "Discharging":
-            batstat = "d"
-        elif batstat_d == "Not charging":
-            batstat = "n"
-        else:
-            batstat = "c"
-
-        batstat_f.close()
-
-        return f"{batstat}{batcap}"
-    else:
-        return "nb"
-
-# 3 > action
-# 3.1 > printing methods
-def setroot_print(status):
-    popen("xsetroot -name " + status)
-
-def debug_print(status):
-    stdout.write('\x1b[1A\x1b[2K')
-    print(status)
-
-def tmux_print(status):
-    print(status)
-
-if debug:
-    print_method = debug_print
-elif tmux:
-    print_method = tmux_print
-else:
-    print_method = setroot_print
-
-def main():
-    if tmux:
-        finprint  = f"{cs} {sb_mpd()} {cc} {sb_dat()} {cc} "
-        finprint += f"{sb_lavg()} {sb_mem()} {cc} {sb_bat()} {cr} "
-
-        print_method(finprint)
-    else:
-        # 3.2 > separate thread for weather and tickers 
-        weather_thread = Thread(target=sb_weather)
-        doviz_thread = Thread(target=sb_doviz)
-        binan_thread = Thread(target=sb_binan)
-
-        weather_thread.daemon = True
-        doviz_thread.daemon = True
-        binan_thread.daemon = True
-
-        weather_thread.start()
-        doviz_thread.start()
-        binan_thread.start()
+        for job in threads:
+            job.start()
 
         while True:
-            finprint  = f"\" {sb_bw()} ¦ {sb_lavg()} {sb_mem()} {sb_temp()}"
+            finprint = '"'
+            finprint += f" {get_bandwidth()}"
+            finprint += f" ¦ {get_loadavg()} {get_mem()} {get_temp()}"
 
-            if is_thinkpad: finprint += f"/{sb_ibmfan()} {sb_bat()}"
+            if os.path.isfile(IBMFAN_PATH):
+                finprint += f"/{get_battery()} {get_ibmfan()}"
 
-            finprint += f" ¦ {weat} ¦ {doviz}/{binan} ¦ {sb_mpd()} ¦ {sb_dat()} \""
+            finprint += f" ¦ {weather} ¦ {yahoo}/{binance}"
+            finprint += f" ¦ {MPD(args.host, args.port).run()}"
+            finprint += f" ¦ {get_date()}"
+            finprint += '"'
 
-            print_method(finprint)
+            if args.debug is True:
+                sys.stdout.write("\x1b[1A\x1b[2K")
+                print(finprint)
+            else:
+                os.popen(f"xsetroot -name {finprint}")
 
-# 3.3 > reddit
-if __name__ == "__main__":
-    main()
+    if args.command == "tmux":
+        p_set, p_reset = "#[fg=white bg=black]", "#[default]"
+        p_block = f"{p_reset} {p_set}"
+
+        finprint = f"{p_set} {MPD(args.host, args.port).run()} {p_block} "
+        finprint += f"{get_date()} {p_block} "
+        finprint += f"{get_loadavg()} {get_mem()} {p_block} "
+        finprint += f"{get_battery()} {p_reset} "
+
+        print(finprint)
