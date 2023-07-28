@@ -1,232 +1,265 @@
 #!/usr/bin/python
+# pylint: disable=missing-module-docstring,missing-class-docstring,missing-function-docstring
+# pylint: disable=too-few-public-methods,too-many-instance-attributes
+# pylint: disable=invalid-name
+
 import argparse
-import ssl
+import urllib.parse
 import urllib.request
-from datetime  import datetime
-from json      import loads
-from re        import sub
+import ssl
+import json
+import re
+import unicodedata
+from datetime import datetime
 from threading import Thread
 
-## parse inputs
-desc = '{current|weekly|hourly} weather data from mgm.gov.tr'
-parser = argparse.ArgumentParser(description = desc)
-parser.add_argument('--loc', type = str, default = "Ankara/Esenboga Havalimani")
 
-args = parser.parse_args()
-loc = args.loc
+class MGM:
+    def __init__(self, city, province):
+        self.il = city
+        self.ilce = province
 
-## funcs
+        self.station_id = None
+        self.daily_id = None
+        self.hourly_id = None
+
+        self.current = None
+        self.daily = None
+        self.hourly = None
+
+    def _get_data(self, request, params):
+        context = ssl.create_default_context()
+        context.options |= 0x4
+
+        params = urllib.parse.urlencode(params)
+        url = f"https://servis.mgm.gov.tr/web/{request}?{params}"
+        headers = {"Origin": "https://mgm.gov.tr"}
+
+        request = urllib.request.Request(f"{url}", headers=headers)
+
+        with urllib.request.urlopen(request, context=context) as f:
+            data = json.loads(f.read().decode())
+
+        return data
+
+    def _get_ids(self):
+        data = self._get_data("merkezler", {"il": self.il, "ilce": self.ilce})[0]
+        self.station_id = data["merkezId"]
+        self.daily_id = data["gunlukTahminIstNo"]
+        self.hourly_id = data["saatlikTahminIstNo"]
+
+    @staticmethod
+    def _convtime(timestamp):
+        return datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%fZ").strftime(
+            "%a %d %H:%M:%S"
+        )
+
+    def _get_current(self):
+        if self.daily_id is None:
+            msg = "! current weather information is not available for this location.\n"
+        else:
+            data = self._get_data("sondurumlar", {"merkezid": self.station_id})[0]
+
+            timestamp = self._convtime(data["veriZamani"])
+
+            code = data["hadiseKodu"]
+            temp = data["sicaklik"]
+            wind = data["ruzgarHiz"]
+            rain = data["yagis00Now"]
+            moist = data["nem"]
+
+            code = code.lower() if code != -9999 else "n/a"
+            temp = temp if temp != -9999 else "n/a"
+            wind = f"{wind:.1f}" if wind != -9999 else "n/a"
+            rain = rain if rain != -9999 else "n/a"
+            moist = moist if moist != -9999 else "n/a"
+
+            msg = "  current weather\n"
+            msg += f"  {('-' * (len(msg) - 3))}\n"
+            msg += f"→ {timestamp}\n"
+            msg += f"→ {'code'       : >15} | {code :>5}\n"
+            msg += f"→ {'temperature': >15} | {temp :>5} C°\n"
+            msg += f"→ {'wind speed' : >15} | {wind :>5} km/s\n"
+            msg += f"→ {'rainfall'   : >15} | {rain :>5} mm\n"
+            msg += f"→ {'moisture'   : >15} | {moist :>5} %\n"
+
+        self.current = drawbox(msg, "single")
+
+    def _get_daily(self):
+        if self.daily_id is None:
+            msg = "! daily forecast is not available for this location.\n"
+        else:
+            data = self._get_data("tahminler/gunluk", {"istno": self.daily_id})[0]
+
+            msg = "  weekly forecast\n"
+            msg += f"  {('-' * (len(msg) - 3))}\n"
+
+            for day in range(1, 6):
+                timestamp = self._convtime(data[f"tarihGun{day}"])
+
+                code = data[f"hadiseGun{day}"]
+                temp_lo = data[f"enDusukGun{day}"]
+                temp_hi = data[f"enYuksekGun{day}"]
+                moist_lo = data[f"enDusukNemGun{day}"]
+                moist_hi = data[f"enYuksekNemGun{day}"]
+                wind = data[f"ruzgarHizGun{day}"]
+
+                code = code.lower() if code != "-9999" else "n/a"
+                temp_lo = f"{temp_lo}" if temp_lo != "-9999" else "n/a"
+                temp_hi = f"{temp_hi}" if temp_hi != "-9999" else "n/a"
+                moist_lo = f"{moist_lo}" if moist_lo != "-9999" else "n/a"
+                moist_hi = f"{moist_hi}" if moist_hi != "-9999" else "n/a"
+                wind = f"{wind:.1f}" if wind != "-9999" else "n/a"
+
+                msg += (
+                    f"→ {timestamp} | {code : >5} {temp_lo + '/' + temp_hi + 'C°' : >9}"
+                )
+                msg += (
+                    f" {moist_lo + '/' + moist_hi + '%' : >8} {wind + ' km/h' : >15}\n"
+                )
+
+        self.daily = drawbox(msg, "single")
+
+    def _get_hourly(self):
+        if self.hourly_id is None:
+            msg = "! hourly forecast is not available for this location.\n"
+        else:
+            data = self._get_data("tahminler/saatlik", {"istno": self.hourly_id})[0][
+                "tahmin"
+            ]
+
+            msg = "  hourly forecast\n"
+            msg += f"  {('-' * (len(msg) - 3))}\n"
+
+            for _, day in enumerate(data):
+                timestamp = self._convtime(day["tarih"])
+
+                code = day["hadise"]
+                temp = day["sicaklik"]
+                feel = day["hissedilenSicaklik"]
+                moist = day["nem"]
+                wind = day["ruzgarHizi"]
+                wind_max = day["maksimumRuzgarHizi"]
+
+                code = code.lower() if code != -9999 else "n/a"
+                temp = str(temp) if temp != -9999 else "n/a"
+                feel = str(feel) if feel != -9999 else "n/a"
+                moist = str(moist) if moist != -9999 else "n/a"
+                wind = f"{wind:.1f}" if wind != -9999 else "n/a"
+                wind_max = f"{wind_max:.1f}" if wind_max != -9999 else "n/a"
+
+                msg += f"→ {timestamp} | {code : >5} {temp + '/' + feel + 'C°' : >9}"
+                msg += f" {moist + '%' : >8} {wind + '/' + wind_max + ' km/h' : >15}\n"
+
+        self.hourly = drawbox(msg, "single")
+
+    def collect(self):
+        self._get_ids()
+
+        threads = []
+        current_thread = Thread(target=self._get_current, daemon=False)
+        daily_thread = Thread(target=self._get_daily, daemon=False)
+        hourly_thread = Thread(target=self._get_hourly, daemon=False)
+
+        threads.append(current_thread)
+        threads.append(daily_thread)
+        threads.append(hourly_thread)
+
+        for job in threads:
+            job.start()
+
+        for job in threads:
+            job.join()
+
+        return drawbox(f"{self.current}{self.hourly}{self.daily}", "double")
+
+
+def unilen(string):
+    width = 0
+    for i in string:
+        if unicodedata.category(i)[0] in ("M", "C"):
+            continue
+        w = unicodedata.east_asian_width(i)
+        if w in ("N", "Na", "H", "A"):
+            width += 1
+        else:
+            width += 2
+    return width
+
+
 def drawbox(string, charset):
- if charset == 'double':
-  chars = {'1': '╔', '2': '╗', '3': '╚', '4': '╝', 'h': '═', 'v': '║'}
- elif charset == 'single':
-  chars = {'1': '┌', '2': '┐', '3': '└', '4': '┘', 'h': '─', 'v': '│'}
- else:
-  chars = {'1': '+', '2': '+', '3': '+', '4': '+', 'h': '-', 'v': '|'}
+    if charset == "double":
+        chars = {"1": "╔", "2": "╗", "3": "╚", "4": "╝", "h": "═", "v": "║"}
+    elif charset == "single":
+        chars = {"1": "┌", "2": "┐", "3": "└", "4": "┘", "h": "─", "v": "│"}
+    elif charset == "thic":
+        chars = {"1": "╔", "2": "╗", "3": "╚", "4": "╝", "h": "─", "v": "│"}
+    else:
+        chars = {"1": "+", "2": "+", "3": "+", "4": "+", "h": "-", "v": "|"}
 
- a = string.split('\n')
- if a[-1] == '': a = a[:-1]
+    string = string.split("\n")
 
- for i in range(0, len(a)):
-  a[i] = sub(r'^', chars['v'], a[i])
+    if string[-1] == "":
+        string = string[:-1]
+    if string[0] == "":
+        string = string[1:]
 
- width = len(max(a, key=len))
+    for i, _ in enumerate(string):
+        string[i] = re.sub(r"^", chars["v"], string[i])
 
- for i in range(0, len(a)):
-  a[i] = (f"{a[i]}{(width - len(a[i])) * ' '}{chars['v']}")
+    width = 0
+    for i, _ in enumerate(string):
+        if unilen(string[i]) > width:
+            width = unilen(string[i])
 
- a.insert(0, f"{chars['1']}{chars['h'] * (width - 1)}{chars['2']}")
- a.append(f"{chars['3']}{chars['h'] * (width - 1)}{chars['4']}")
+    for i, _ in enumerate(string):
+        string[i] = f"{string[i]}{(width - unilen(string[i])) * ' '}{chars['v']}"
 
- fin = ''
- finlen = len(a)
- for i in range(0, finlen):
-  fin += a[i] + '\n'
+    string.insert(0, f"{chars['1']}{chars['h'] * (width - 1)}{chars['2']}")
+    string.append(f"{chars['3']}{chars['h'] * (width - 1)}{chars['4']}")
 
- return fin
+    fin = ""
+    for i, line in enumerate(string):
+        fin += line + "\n"
 
-def convtime(tstamp):
- return datetime.strptime(tstamp,
-                          "%Y-%m-%dT%H:%M:%S.%fZ"
-                          ).strftime("%a %d %H:%M:%S")
+    return fin
 
-def formatstring(string):
- string = sub(r'[Çç]', 'c', string)
- string = sub(r'[Öö]', 'o', string)
- string = sub(r'[Üü]', 'u', string)
- string = sub(r'[Ğğ]', 'g', string)
- string = sub(r'[İı]', 'i', string)
- string = sub(r'[Şş]', 's', string)
 
- return string.title()
+def stripstring(string):
+    string = re.sub(r"[Çç]", "c", string)
+    string = re.sub(r"[Öö]", "o", string)
+    string = re.sub(r"[Üü]", "u", string)
+    string = re.sub(r"[Ğğ]", "g", string)
+    string = re.sub(r"[İı]", "i", string)
+    string = re.sub(r"[Şş]", "s", string)
 
-def getdata(req):
- context          = ssl.create_default_context()
- context.options |= 0x4
+    return string.title()
 
- if ' ' in req: req = sub(r' ', '%20', req)
 
- rawdata = urllib.request.Request(req)
- rawdata.add_header('Origin', 'https://mgm.gov.tr')
+if __name__ == "__main__":
+    PARSER_DESC = "Pull current/hourly/daily weather reports from the MGM API"
 
- return loads(urllib.request.urlopen(rawdata, context=context).read().decode())
+    parser = argparse.ArgumentParser(description=PARSER_DESC)
+    parser.add_argument("-l", "--loc", type=str, default="Ankara/Esenboga Havalimani")
 
-def getids(data):
- want, ids = ['merkezId',
-              'gunlukTahminIstNo',
-              'saatlikTahminIstNo'
-             ], []
+    args = parser.parse_args()
+    location = args.loc
 
- for i in want: ids.append(str(data[i]))
+    if "/" not in location:
+        warn = "Location should be separated with a /.\n"
+        warn += "(eg. 'Ankara/Çankaya')"
+        raise ValueError(drawbox(warn, "double"), end="")
 
- return ids
+    location = location.split("/")
 
-def getweat_curr(curreq):
- global currfin
+    if len(location) > 2:
+        warn = "Location should be composed of a city and a province\n"
+        warn += "separated with a /. (eg. 'Ankara/Çankaya')"
+        raise ValueError(drawbox(warn, "double"), end="")
 
- data   = getdata(curreq)[0]
- tstamp = convtime(data['veriZamani'])
+    for num, val in enumerate(location):
+        location[num] = stripstring(re.sub(r"^\ |\ $", "", val))
 
- coderaw, tempraw, windraw, rainraw, moisraw = (data['hadiseKodu'],
-                                                data['sicaklik'],
-                                                data['ruzgarHiz'],
-                                                data['yagis00Now'],
-                                                data['nem'])
-
- code = coderaw.lower()          if coderaw != -9999 else "n/a"
- temp = f"{tempraw}"             if tempraw != -9999 else "n/a"
- wind = "{:.1f}".format(windraw) if windraw != -9999 else "n/a"
- rain = f"{rainraw}"             if rainraw != -9999 else "n/a"
- mois = f"{moisraw}"             if moisraw != -9999 else "n/a"
-
- currfin  = "  current weather\n"
- currfin += "  " + ('-' * (len(currfin) - 3)) + "\n"
-
- currfin += f"→ {tstamp}\n"
- currfin += f"→ {'code'       : >15} | {code :>5}\n"
- currfin += f"→ {'temperature': >15} | {temp :>5} C°\n"
- currfin += f"→ {'wind speed' : >15} | {wind :>5} km/s\n"
- currfin += f"→ {'rainfall'   : >15} | {rain :>5} mm\n"
- currfin += f"→ {'moisture'   : >15} | {mois :>5} %"
-
-def getweat_hourly(hourlyreq):
- global hourfin
-
- if hourlyID == 'None':
-  hourfin = "! hourly forecast is not available for this location"
- else:
-  data = getdata(hourlyreq)[0]['tahmin']
-
-  hourfin  = "  hourly forecast\n"
-  hourfin += "  " + ('-' * (len(hourfin) - 3)) + "\n"
-
-  datalen = len(data)
-  for i in range(0, datalen):
-   curdat = data[i]
-   tstamp  = convtime(curdat['tarih'])
-   coderaw = curdat['hadise']
-   tempraw = curdat['sicaklik']
-   feelraw = curdat['hissedilenSicaklik']
-   moisraw = curdat['nem']
-   wsperaw = curdat['ruzgarHizi']
-   maxwraw = curdat['maksimumRuzgarHizi']
-
-   code = coderaw.lower()          if coderaw != -9999 else "n/a"
-   temp = f"{tempraw}"             if tempraw != -9999 else "n/a"
-   feel = f"{feelraw}"             if feelraw != -9999 else "n/a"
-   mois = f"{moisraw}"             if moisraw != -9999 else "n/a"
-   wspe = "{:.1f}".format(wsperaw) if wsperaw != -9999 else "n/a"
-   maxw = "{:.1f}".format(maxwraw) if maxwraw != -9999 else "n/a"
-
-   hourfin += f"→ {tstamp} | {code : >5} {temp + '/' + feel + 'C°' : >9}"
-   hourfin += f" {mois + '%' : >8} {wspe + '/' + maxw + ' km/h' : >15}"
-
-   if i == (datalen - 1):
-    continue
-   else:
-    hourfin += '\n'
-
-def getweat_weekly(weeklyreq):
- global weekfin
-
- data = getdata(weeklyreq)[0]
-
- weekfin  = "  weekly forecast\n"
- weekfin += "  " + ('-' * (len(weekfin) - 3)) + "\n"
-
- datalen = int(((len(data) - 1 ) / 8) + 1)
- for i in range(1, datalen):
-  i = str(i)
-
-  tstamp  = convtime(data['tarihGun' + i])
-  coderaw = data['hadiseGun'      + i]
-  ltmpraw = data['enDusukGun'     + i]
-  htmpraw = data['enYuksekGun'    + i]
-  lmoiraw = data['enDusukNemGun'  + i]
-  hmoiraw = data['enYuksekNemGun' + i]
-  wsperaw = data['ruzgarHizGun'   + i]
-
-  code = coderaw.lower()          if coderaw != "-9999" else "n/a"
-  ltmp = f"{ltmpraw}"             if ltmpraw != "-9999" else "n/a"
-  htmp = f"{htmpraw}"             if htmpraw != "-9999" else "n/a"
-  lmoi = f"{lmoiraw}"             if lmoiraw != "-9999" else "n/a"
-  hmoi = f"{hmoiraw}"             if hmoiraw != "-9999" else "n/a"
-  wspe = "{:.1f}".format(wsperaw) if wsperaw != "-9999" else "n/a"
-
-  weekfin += f"→ {tstamp} | {code : >5} {ltmp + '/' + htmp + 'C°' : >9}"
-  weekfin += f" {lmoi + '/' + hmoi + '%' : >8} {wspe + ' km/h' : >15}"
-
-  if i == str(datalen - 1):
-   continue
-  else:
-   weekfin += '\n'
-
-## action
-if '/' not in loc:
- warn  = "locations should be separated with a /.\n"  
- warn += "(eg. 'Ankara/Çankaya'.)"
- print(drawbox(warn, 'double'), end='')
- exit(1)
-else:
- loc = args.loc.split('/')
-
-if len(loc) > 2:
- warn  = "location should be composed of a city and a province\n"
- warn += "separated with a /. (eg. 'Ankara/Çankaya'.)"
- print(drawbox(warn, 'double'), end='')
- exit(1)
-else:
- for i in range(0, len(loc)):
-  loc[i] = formatstring(sub(r'^\ |\ $', '', loc[i]))
-  if i == 0:
-   il = loc[0]
-  elif i == 1:
-   ilce = loc[1]
-
-mgmhost = 'https://servis.mgm.gov.tr/web'
-idreq   = mgmhost + '/merkezler?il=' + il + '&ilce=' + ilce
-
-try:
- stationID, dailyID, hourlyID = getids(getdata(idreq)[0])
-except:
- warn  = "location is not valid according to MGM.\n"
- print(drawbox(warn, 'double'), end='')
- exit(1)
- 
-weeklyreq = mgmhost + '/tahminler/gunluk?istno='  + dailyID
-curreq    = mgmhost + '/sondurumlar?merkezid='    + stationID
-hourlyreq = mgmhost + '/tahminler/saatlik?istno=' + hourlyID
-
-## threads
-curr_thread   = Thread(target=getweat_curr, args=(curreq,))
-hourly_thread = Thread(target=getweat_hourly, args=(hourlyreq,))
-weekly_thread = Thread(target=getweat_weekly, args=(weeklyreq,))
-
-threads = []
-for i in curr_thread, hourly_thread, weekly_thread: threads.append(i)
-for i in threads: i.start()
-for i in threads: i.join()
-
-finprint = drawbox(f"{il}/{ilce} | ({stationID} | {dailyID} | {hourlyID})", 'single')
-for i in currfin, hourfin, weekfin: finprint += drawbox(i, 'single')
-print(drawbox(finprint, 'double'))
+    weather = MGM(location[0], location[1])
+    weather = weather.collect()
+    print(weather, end="")
