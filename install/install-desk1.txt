@@ -234,30 +234,24 @@ setfirewall.py \
  --desktop
 
 # 2.2.5.1 > nfqws
-git clone --depth=1 https://github.com/bol-van/zapret
-cd  zapret/nfq/
+cd /mnt/mss/stuff/techy-bits/git/mss-nfqws/
 
-make clean
+mkdir build
+cd    build
 
-for i in *.c crypto/*.c; do clang ${CFLAGS} -std=gnu99 -c "${i}"; done
+meson setup -Dopenwrt=false ../
 
-clang ${LDFLAGS} -std=gnu99 *.o -o nfqws \
- -lz -lcap -lmnl -lnetfilter_queue -lnfnetlink
+samu
+samu install
 
-for i in nfqws; do
- strip --strip-all "${i}"
- chown root:root "${i}"
- mv "${i}" /usr/bin/
-done
-
-cd ../../; rm -rf zapret/
+cd ../; rm -rf build/; cd
 
 # 2.2.6 > services
 systemctl enable NetworkManager
 systemctl enable gpm
 systemctl enable nftables
 systemctl enable named
-#systemctl enable nfqws
+#systemctl enable mss-nfqws
 systemctl enable ntpd
 systemctl enable pulseaudio
 systemctl enable sshd
