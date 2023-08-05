@@ -1,5 +1,5 @@
 project('utils',
- version: '78',
+ version: '79',
  license: 'GPL3',
  default_options: [
   'buildtype=plain',
@@ -44,8 +44,7 @@ files_etc = [
 ]
 
 files_share = [
- 'share/bash-handler',
- 'share/nfqws-handler'
+ 'share/bash-handler'
 ]
 
 install_data(files_bin,   install_dir: join_paths(get_option('prefix'), 'bin'))
