@@ -96,20 +96,20 @@ cd ../; rm -rf build/; cd
 # 2.2.1 > configure /etc
 fdir="${repodir}/dir"
 
-echo "nameserver 192.168.1.1" > /etc/resolv.conf
-echo "solitude"               > /etc/hostname
+echo "nameserver 172.16.0.1" > /etc/resolv.conf
+echo "solitude"              > /etc/hostname
 
 cat << EOF > /etc/hosts
-127.0.0.1    localhost
-127.0.1.1    solitude solitude
+127.0.0.1   localhost
+127.0.1.1   solitude solitude
 
-192.168.1.2  gat
-192.168.1.3  ashtray
-192.168.1.4  solitude
-192.168.1.11 gatW
-192.168.1.12 ashtrayW
-192.168.1.13 solitudeW
-192.168.1.21 user
+172.16.0.2  gat
+172.16.0.3  ashtray
+172.16.0.4  solitude
+172.16.0.11 gatW
+172.16.0.12 ashtrayW
+172.16.0.13 solitudeW
+172.16.0.21 user
 EOF
 
 cp -vf \
@@ -135,10 +135,10 @@ cat /etc/fstab | column -t > /tmp/fstab; mv /tmp/fstab /etc/fstab
 
 cat << EOF > /etc/ssh/banner
 
- ╔──────────────────────────╗
- │ solitude  - 192.168.1.4  │
- │ solitudeW - 192.168.1.13 │
- ╚──────────────────────────╝
+ ╔─────────────────────────╗
+ │ solitude  - 172.16.0.4  │
+ │ solitudeW - 172.16.0.13 │
+ ╚─────────────────────────╝
 
 EOF
 
