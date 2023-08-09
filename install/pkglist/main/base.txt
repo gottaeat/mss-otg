@@ -9,6 +9,7 @@ bind
 bully
 clinfo
 diffutils
+dosfstools
 dsniff
 fdupes
 feh
@@ -17,6 +18,7 @@ fontconfig
 freetype2
 gimp
 git
+gnu-netcat
 go
 gpm
 hashcat
@@ -52,7 +54,6 @@ mumble
 mupdf
 ncmpcpp
 neofetch
-netcat
 networkmanager
 nginx
 nmap
@@ -73,8 +74,12 @@ pulseaudio
 pulseaudio-alsa
 python
 python-beautifulsoup4
+python-black
+python-passlib
+python-pip
+python-pylint
 python-requests
-python-xmltodict
+python-yaml
 reaver
 redshift
 rsync
@@ -82,6 +87,7 @@ samurai
 signal-desktop
 smartmontools
 strace
+tcpdump
 terminus-font
 tmux
 tor
@@ -93,6 +99,9 @@ unzip
 v4l-utils
 vifm
 vim
+vnstat
+wget
+wireguard-tools
 wireshark-qt
 xclip
 xf86-input-libinput

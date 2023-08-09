@@ -3,9 +3,12 @@ amd-ucode
 cmake
 dmidecode
 dnsmasq
+docker
+docker-compose
 efibootmgr
 glfw-x11
 jdk-openjdk
+lib32-libpulse
 lib32-mangohud
 lib32-mesa
 lib32-vulkan-icd-loader
@@ -14,6 +17,7 @@ libva-mesa-driver
 libvirt
 mangohud
 mesa-vdpau
+minetest
 openmw
 qemu-desktop
 radeontop
@@ -22,5 +26,6 @@ steam
 virt-manager
 vulkan-icd-loader
 vulkan-radeon 
+wine
 winetricks
 xf86-video-amdgpu
