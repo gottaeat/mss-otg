@@ -155,6 +155,9 @@ cp -vfr "${fdir}"/usr/share/dbus-1/system.d/* /usr/share/dbus-1/system.d
 cp -vfr "${fdir}"/etc/X11/xorg.conf.d/01-desk1.conf \
  /etc/X11/xorg.conf.d/
 
+ln -sfv /mnt/mss/stuff/techy-bits/vpn/mullvad-wg/wg0.conf \
+ /etc/wireguard/wg0.conf
+
 groupadd -r pulse
 groupadd -r pulse-access
 useradd -r -g pulse -G audio -d /var/run/pulse -m pulse
@@ -211,9 +214,9 @@ useradd \
  -m           \
  -g 1001      \
  -u 1001      \
- -G adbusers,adm,audio,disk,floppy,ftp,games,http,input,kmem,kvm,log,lp,mail,\
-optical,proc,pulse-access,rfkill,scanner,smmsp,storage,sys,systemd-journal,tty,\
-libvirt,users,utmp,uucp,video,wheel,wireshark \
+ -G adbusers,adm,audio,disk,docker,floppy,ftp,games,http,input,kmem,kvm,\
+libvirt,log,lp,mail,mss,optical,proc,pulse-access,rfkill,scanner,smmsp,storage,\
+sys,systemd-journal,tty,users,utmp,uucp,video,wheel,wireshark \
  mss
 
 passwd
@@ -257,6 +260,7 @@ systemctl enable pulseaudio
 systemctl enable sshd
 systemctl enable tor
 systemctl enable transmission
+systemctl enable vnstat
 
 systemctl mask mpd.socket
 systemctl enable mpd.service
@@ -264,6 +268,7 @@ systemctl enable mpd.service
 systemctl mask iptables
 
 systemctl enable libvirtd.service virtlogd.service
+systemctl enable docker
 
 # 2.2.7 > bootloader
 mkinitcpio -P
