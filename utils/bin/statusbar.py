@@ -198,6 +198,7 @@ def get_bandwidth():
                 break
 
     if iface is None:
+        time.sleep(1)
         return "no conn"
 
     rx_path = f"/sys/class/net/{iface}/statistics/rx_bytes"
