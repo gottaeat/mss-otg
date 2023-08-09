@@ -1,0 +1,25 @@
+#!/bin/sh
+. /mss/etc/funcs
+
+for k in *; do
+    aprint "${cb_red}entering ${cb_whi}${k}${c_res}."
+    cd "${k}"
+
+    for i in *.webm; do
+        meme="$(echo ${i} | sed 's/\.webm//g')"
+        aprint "${cb_blu}converting ${cb_yel}${meme}${c_res}."
+
+        ffmpeg \
+            -i "${meme}".webm \
+            -threads 8        \
+            -ab 320k          \
+            -map_metadata 0   \
+            -id3v2_version 3  \
+            "${meme}".mp3 >/dev/null 2>&1
+  
+        rm -rf "${meme}".webm
+    done
+
+    aprint_nc
+    cd ../
+done 
