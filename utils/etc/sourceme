@@ -8,9 +8,10 @@ export  EDITOR="vim"
 export GPG_TTY="$(tty)"
 
 # 1.3 > misc
-export          MPD_HOST="127.0.0.1"
-export   MOZ_USE_XINPUT2="1"
-export SAL_USE_VCLPLUGIN=gen
+export            MPD_HOST="127.0.0.1"
+export     MOZ_USE_XINPUT2="1"
+export   SAL_USE_VCLPLUGIN="gen"
+export LIBVIRT_DEFAULT_URI="qemu:///system"
 
 # 1.4 > colors
  c_res="\033[0;39m"
