@@ -268,6 +268,10 @@ systemctl enable mpd.service
 systemctl mask iptables
 
 systemctl enable libvirtd.service virtlogd.service
+
+sed -i -e 's/LimitNOFILE=infinity/LimitNOFILE=1024:524288/g' \
+ /usr/lib/systemd/system/{containerd,docker}.service
+
 systemctl enable docker
 
 # 2.2.7 > bootloader
@@ -308,11 +312,44 @@ cd ../; rm -rf yay/
 yay -Syu --noconfirm \
  `cat /mss/repo/install/pkglist/user/{base,desk1}.txt`
 
-# 3.2 > libvirt network
-sudo -i
-virsh -c qemu:///system net-autostart --network default
-
 # 3.3 > cleanup
+sudo -i
+
+cat << EOF > /tmp/gat-network.tmp
+<network>
+ <name>gat</name>
+ <forward mode="nat"/>
+ <domain name="gat"/>
+ <ip address="192.168.255.1" netmask="255.255.255.0">
+  <dhcp>
+   <range start="192.168.255.2" end="192.168.255.254"/>
+  </dhcp>
+ </ip>
+</network>
+EOF
+
+cat << EOF > /tmp/gat-pool.tmp
+<pool type="dir">
+ <name>gat</name>
+  <target>
+   <path>/mnt/mss/stuff/techy-bits/pools/gat</path>
+  </target>
+</pool>
+EOF
+
+virsh net-define --file /tmp/gat-network.tmp
+virsh net-start --network gat
+virsh net-autostart --network gat
+
+virsh pool-define --file /tmp/gat-pool.tmp
+virsh pool-autostart --pool gat
+virsh pool-start --pool gat
+
+virsh pool-destroy --pool default
+virsh pool-undefine --pool default
+
+rm -rf /tmp/gat-network.tmp /tmp/gat-pool.tmp
+
 pacman -Qtdq | pacman -Rns - --noconfirm
 pacman -Scc --noconfirm
 
