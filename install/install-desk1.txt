@@ -315,16 +315,21 @@ yay -Syu --noconfirm \
 # 3.3 > cleanup
 sudo -i
 
-cat << EOF > /tmp/gat-network.tmp
+cat << EOF > /tmp/gat-ptp-network.tmp
 <network>
- <name>gat</name>
+ <name>gat-ptp</name>
  <forward mode="nat"/>
- <domain name="gat"/>
- <ip address="192.168.255.1" netmask="255.255.255.0">
-  <dhcp>
-   <range start="192.168.255.2" end="192.168.255.254"/>
-  </dhcp>
- </ip>
+ <domain name="gat-ptp"/>
+ <ip address="192.168.255.1" netmask="255.255.255.252"/>
+</network>
+EOF
+
+cat << EOF > /tmp/gat-lan-network.tmp
+<network>
+ <name>gat-lan</name>
+ <forward mode="nat"/>
+ <domain name="gat-lan"/>
+ <ip address="192.168.254.2" netmask="255.255.255.0"/>
 </network>
 EOF
 
@@ -337,9 +342,14 @@ cat << EOF > /tmp/gat-pool.tmp
 </pool>
 EOF
 
-virsh net-define --file /tmp/gat-network.tmp
-virsh net-start --network gat
-virsh net-autostart --network gat
+for i in ptp lan; do
+ virsh net-define --file /tmp/gat-"${i}"-network.tmp
+ virsh net-start --network gat-"${i}"
+ virsh net-autostart --network gat-"${i}"
+done
+
+virsh net-destroy --network default
+virsh net-undefine --network default
 
 virsh pool-define --file /tmp/gat-pool.tmp
 virsh pool-autostart --pool gat
@@ -348,7 +358,7 @@ virsh pool-start --pool gat
 virsh pool-destroy --pool default
 virsh pool-undefine --pool default
 
-rm -rf /tmp/gat-network.tmp /tmp/gat-pool.tmp
+rm -rf /tmp/gat-*-network.tmp /tmp/gat-pool.tmp
 
 pacman -Qtdq | pacman -Rns - --noconfirm
 pacman -Scc --noconfirm
