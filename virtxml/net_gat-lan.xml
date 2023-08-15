@@ -1,0 +1,5 @@
+<network>
+    <name>gat-lan</name>
+    <mac address="00:ab:ad:1d:ea:01"/>
+    <ip address="192.168.254.2" netmask="255.255.255.0"></ip>
+</network>

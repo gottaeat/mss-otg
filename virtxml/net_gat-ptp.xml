@@ -1,0 +1,10 @@
+<network>
+    <name>gat-ptp</name>
+    <mac address="00:ab:ad:1d:ea:00"/>
+    <forward mode="nat"/>
+    <ip address="192.168.255.1" netmask="255.255.255.252">
+        <dhcp>
+            <range start="192.168.255.2" end="192.168.255.2"/>
+        </dhcp>
+    </ip>
+</network>

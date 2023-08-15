@@ -1,0 +1,6 @@
+<pool type="dir">
+    <name>iso</name>
+    <target>
+        <path>/mnt/mss/stuff/techy-bits/iso</path>
+    </target>
+</pool>
