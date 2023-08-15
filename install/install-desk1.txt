@@ -315,50 +315,32 @@ yay -Syu --noconfirm \
 # 3.3 > cleanup
 sudo -i
 
-cat << EOF > /tmp/gat-ptp-network.tmp
-<network>
- <name>gat-ptp</name>
- <forward mode="nat"/>
- <domain name="gat-ptp"/>
- <ip address="192.168.255.1" netmask="255.255.255.252"/>
-</network>
-EOF
-
-cat << EOF > /tmp/gat-lan-network.tmp
-<network>
- <name>gat-lan</name>
- <forward mode="nat"/>
- <domain name="gat-lan"/>
- <ip address="192.168.254.2" netmask="255.255.255.0"/>
-</network>
-EOF
-
-cat << EOF > /tmp/gat-pool.tmp
-<pool type="dir">
- <name>gat</name>
-  <target>
-   <path>/mnt/mss/stuff/techy-bits/pools/gat</path>
-  </target>
-</pool>
-EOF
-
-for i in ptp lan; do
- virsh net-define --file /tmp/gat-"${i}"-network.tmp
- virsh net-start --network gat-"${i}"
- virsh net-autostart --network gat-"${i}"
-done
-
+virsh pool-destroy --pool default
+virsh pool-undefine --pool default
 virsh net-destroy --network default
 virsh net-undefine --network default
 
-virsh pool-define --file /tmp/gat-pool.tmp
-virsh pool-autostart --pool gat
-virsh pool-start --pool gat
+xmldir="/mss/repo/virtxml"
 
-virsh pool-destroy --pool default
-virsh pool-undefine --pool default
+for i in "${xmldir}"/net_*; do
+ netname="$(echo ${i} | sed 's/^.*\/net_//;s/\.xml$//')"
+ virsh net-define --file "${i}"
+ virsh net-start --network "${netname}"
+ virsh net-autostart --network "${netname}"
+done
 
-rm -rf /tmp/gat-*-network.tmp /tmp/gat-pool.tmp
+for i in "${xmldir}"/pool_*; do
+ poolname="$(echo ${i} | sed 's/^.*\/pool_//;s/\.xml$//')"
+ virsh pool-define --file "${i}"
+ virsh pool-start --pool "${poolname}"
+ virsh pool-refresh --pool "${poolname}"
+ virsh pool-autostart --pool "${poolname}"
+done
+
+for i in "${xmldir}"/dom_*; do
+ domname="$(echo ${i} | sed 's/^.*\/dom_//;s/\.xml$//')"
+ virsh define --file "${i}"
+done
 
 pacman -Qtdq | pacman -Rns - --noconfirm
 pacman -Scc --noconfirm
