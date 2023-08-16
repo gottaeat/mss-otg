@@ -100,16 +100,8 @@ echo "nameserver 172.16.0.1" > /etc/resolv.conf
 echo "solitude"              > /etc/hostname
 
 cat << EOF > /etc/hosts
-127.0.0.1   localhost
-127.0.1.1   solitude solitude
-
-172.16.0.2  gat
-172.16.0.3  ashtray
-172.16.0.4  solitude
-172.16.0.11 gatW
-172.16.0.12 ashtrayW
-172.16.0.13 solitudeW
-172.16.0.21 user
+127.0.0.1 localhost
+127.0.1.1 solitude solitude
 EOF
 
 cp -vf \
@@ -119,7 +111,6 @@ cp -vf \
  "${fdir}"/etc/makepkg.conf     \
  "${fdir}"/etc/mkinitcpio.conf  \
  "${fdir}"/etc/mpd.conf         \
- "${fdir}"/etc/named.conf       \
  "${fdir}"/etc/ntp.conf         \
  "${fdir}"/etc/pacman.conf      \
  "${fdir}"/etc/proxychains.conf \
@@ -152,6 +143,7 @@ cp -vfr "${fdir}"/etc/sysctl.d/*              /etc/sysctl.d/
 cp -vfr "${fdir}"/etc/systemd/logind.conf     /etc/systemd/
 cp -vfr "${fdir}"/etc/systemd/system/*        /etc/systemd/system/
 cp -vfr "${fdir}"/etc/udev/rules.d/*          /etc/udev/rules.d/
+cp -vfr "${fdir}"/etc/unbound/*               /etc/unbound/
 cp -vfr "${fdir}"/usr/share/dbus-1/system.d/* /usr/share/dbus-1/system.d/
 
 cp -vfr "${fdir}"/etc/X11/xorg.conf.d/01-intel-thinkpad.conf \
@@ -185,14 +177,11 @@ sed -i -e 's|kernel.sysrq = 16|kernel.sysrq = 1|g' \
 
 ln -sfv /usr/share/zoneinfo/Europe/Istanbul /etc/localtime
 
-# 2.2.1 > configure bind
-pushd /var/named
+# 2.2.1 > configure unbound
+pushd /etc/unbound
+ rm -rfv /etc/unbound/trusted-key.key
  curl -L -O ftp://72.13.38.33/domain/named.root
- chown named:named *
 popd
-
-> /var/log/named.log
-chown named:named /var/log/named.log
 
 cp -vf "${fdir}"/etc/NetworkManager/conf.d/dns-servers.conf \
  /etc/NetworkManager/conf.d/
@@ -239,7 +228,6 @@ setfirewall.py \
  --desktop
 
 # 2.2.5.1 > nfqws
-# 2.2.5.1 > nfqws
 cd /mnt/mss/stuff/techy-bits/git/mss-nfqws/
 
 mkdir build
@@ -257,7 +245,7 @@ systemctl enable NetworkManager
 systemctl enable acpid
 systemctl enable gpm
 systemctl enable nftables
-systemctl enable named
+systemctl enable unbound
 #systemctl enable mss-nfqws
 systemctl enable ntpd
 systemctl enable pulseaudio
@@ -327,7 +315,7 @@ sed -e "s|REPLACEMEHWMON|${hwmonfile}|g" \
 
 systemctl enable thinkfan
 
-# 3.2 > cleanup
+# 3.3 > cleanup
 pacman -Qtdq | pacman -Rns - --noconfirm
 pacman -Scc --noconfirm
 
