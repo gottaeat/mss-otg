@@ -5,10 +5,10 @@ base
 base-devel
 bc
 bettercap
-bind
 bully
 clinfo
 diffutils
+dnstools
 dosfstools
 dsniff
 fdupes
@@ -94,6 +94,7 @@ tor
 transmission-cli
 ttf-croscore
 ttf-sazanami
+unbound
 unrar
 unzip
 v4l-utils
