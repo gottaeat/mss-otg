@@ -111,6 +111,7 @@ cp -vf \
  "${fdir}"/etc/makepkg.conf     \
  "${fdir}"/etc/mkinitcpio.conf  \
  "${fdir}"/etc/mpd.conf         \
+ "${fdir}"/etc/named.conf       \
  "${fdir}"/etc/ntp.conf         \
  "${fdir}"/etc/pacman.conf      \
  "${fdir}"/etc/proxychains.conf \
@@ -142,7 +143,6 @@ cp -vfr "${fdir}"/etc/sysctl.d/*              /etc/sysctl.d/
 cp -vfr "${fdir}"/etc/systemd/logind.conf     /etc/systemd/
 cp -vfr "${fdir}"/etc/systemd/system/*        /etc/systemd/system/
 cp -vfr "${fdir}"/etc/udev/rules.d/*          /etc/udev/rules.d/
-cp -vfr "${fdir}"/etc/unbound/*               /etc/unbound/
 cp -vfr "${fdir}"/usr/share/dbus-1/system.d/* /usr/share/dbus-1/system.d/
 
 cp -vfr "${fdir}"/etc/X11/xorg.conf.d/01-desk1.conf \
@@ -176,14 +176,17 @@ sed -i -e 's|kernel.sysrq = 16|kernel.sysrq = 1|g' \
 
 ln -sfv /usr/share/zoneinfo/Europe/Istanbul /etc/localtime
 
-# 2.2.1 > configure unbound
-pushd /etc/unbound
- rm -rfv /etc/unbound/trusted-key.key
+# 2.2.1 > configure bind
+pushd /var/named
  curl -L -O ftp://72.13.38.33/domain/named.root
+ chown named:named *
 popd
 
-cp -vf "${fdir}"/etc/NetworkManager/conf.d/dns-servers.conf \
- /etc/NetworkManager/conf.d/
+> /var/log/named.log
+chown named:named /var/log/named.log
+
+#cp -vf "${fdir}"/etc/NetworkManager/conf.d/dns-servers.conf \
+# /etc/NetworkManager/conf.d/
 
 # 2.2.2 > vim
 ln -sfv /usr/bin/vim /usr/bin/vi
@@ -243,7 +246,7 @@ cd ../; rm -rf build/; cd
 systemctl enable NetworkManager
 systemctl enable gpm
 systemctl enable nftables
-systemctl enable unbound
+#systemctl enable named
 #systemctl enable mss-nfqws
 systemctl enable ntpd
 systemctl enable pulseaudio
