@@ -1,0 +1,4 @@
+$TTL 1W
+@ IN SOA localhost. root.localhost. ( 1 1W 1D 4W 1W )
+@ IN NS localhost.
+1 IN PTR localhost.
