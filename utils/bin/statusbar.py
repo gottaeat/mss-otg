@@ -2,7 +2,7 @@
 # pylint: disable=missing-module-docstring,missing-class-docstring,missing-function-docstring
 # pylint: disable=invalid-name
 # pylint: disable=too-few-public-methods
-# pylint: disable=global-statement
+# pylint: disable=bare-except
 import argparse
 import json
 import os
@@ -104,6 +104,116 @@ class MPD:
             indic = f"[{time.strftime(timeshit, time.gmtime(cur_dur))}]"
 
         return f"{indic} {songname}"
+
+
+# scrape
+class Scrape:
+    def __init__(self, area):
+        self.area = area
+        self.mgm = "cookin"
+        self.yahoo = "cookin"
+        self.binance = "cookin"
+
+    def get_mgm(self):
+        context = ssl.create_default_context()
+        context.options |= 0x4
+
+        url = "https://servis.mgm.gov.tr/web/sondurumlar?"
+        params = urllib.parse.urlencode({"merkezid": self.area})
+
+        req = url + params
+        headers = {"Origin": "https://mgm.gov.tr"}
+
+        req = urllib.request.Request(req, headers=headers)
+
+        while True:
+            try:
+                with urllib.request.urlopen(req, context=context) as f:
+                    data = f.read().decode()
+            except urllib.request.HTTPError as e:
+                self.mgm = f"HTTP {e.code}"
+                time.sleep(err_sleep)
+            except urllib.error.URLError as e:
+                self.mgm = f"URL {e.reason.errno}"
+                time.sleep(err_sleep)
+            except:
+                self.mgm = "Error"
+                time.sleep(err_sleep)
+            else:
+                try:
+                    data = json.loads(data)[0]
+                    code = data["hadiseKodu"]
+                    temp = data["sicaklik"]
+                    wind = data["ruzgarHiz"]
+                    rain = data["yagis00Now"]
+
+                    temp = f"{temp}°" if str(temp) != "-9999" else "n/a"
+                    code = code.lower() if str(code) != "-9999" else "n/a"
+                    wind = f"{wind:.1f}km/h" if str(wind) != "-9999" else "n/a"
+                    rain = f"{rain}mm" if str(rain) != "-9999" else "n/a"
+
+                    self.mgm = f"{temp} {code} {wind} {rain}"
+                except:
+                    self.mgm = "Parse Error"
+                    time.sleep(err_sleep)
+                else:
+                    time.sleep(interval)
+
+    def get_yahoo(self):
+        url = "https://query1.finance.yahoo.com/v8/finance/chart/"
+        params = urllib.parse.urlencode({"USDTRY": "X"})
+        req = url + params
+
+        while True:
+            try:
+                with urllib.request.urlopen(req) as f:
+                    data = f.read().decode()
+            except urllib.request.HTTPError as e:
+                self.yahoo = f"HTTP {e.code}"
+                time.sleep(err_sleep)
+            except urllib.error.URLError as e:
+                self.yahoo = f"URL {e.reason.errno}"
+                time.sleep(err_sleep)
+            except:
+                self.yahoo = "Error"
+                time.sleep(err_sleep)
+            else:
+                try:
+                    self.yahoo = json.loads(data)["chart"]["result"][0]["meta"][
+                        "regularMarketPrice"
+                    ]
+                except:
+                    self.yahoo = "Parse Error"
+                    time.sleep(err_sleep)
+                else:
+                    time.sleep(interval)
+
+    def get_binance(self):
+        url = "https://api.binance.com/api/v3/ticker/price?"
+        params = urllib.parse.urlencode({"symbol": "USDTTRY"})
+        req = url + params
+
+        while True:
+            try:
+                with urllib.request.urlopen(req) as f:
+                    data = f.read().decode()
+            except urllib.request.HTTPError as e:
+                self.binance = f"HTTP {e.code}"
+                time.sleep(err_sleep)
+            except urllib.error.URLError as e:
+                self.binance = f"URL {e.reason.errno}"
+                time.sleep(err_sleep)
+            except:
+                self.binance = "Error"
+                time.sleep(err_sleep)
+            else:
+                try:
+                    self.binance = float(json.loads(data)["price"].rstrip("0"))
+                except:
+                    self.binance = "Parse Error"
+                    time.sleep(err_sleep)
+                else:
+                    time.sleep(interval)
 
 
 # procfs
@@ -231,94 +341,6 @@ def get_date():
     return time.strftime("%a %d %H:%M:%S")
 
 
-# API scrapes
-weather, yahoo, binance = None, None, None
-
-
-def get_weather(area):
-    global weather
-    weather = "cookin"
-
-    while True:
-        context = ssl.create_default_context()
-        context.options |= 0x4
-
-        url = "https://servis.mgm.gov.tr/web/sondurumlar?"
-        params = urllib.parse.urlencode({"merkezid": area})
-        req = url + params
-
-        headers = {"Origin": "https://mgm.gov.tr"}
-        req = urllib.request.Request(req, headers=headers)
-
-        try:
-            with urllib.request.urlopen(req, context=context) as f:
-                data = f.read().decode()
-        except urllib.error.HTTPError:
-            weather = "GET failed"
-            time.sleep(10)
-
-        data = json.loads(data)[0]
-        code = data["hadiseKodu"]
-        temp = data["sicaklik"]
-        wind = data["ruzgarHiz"]
-        rain = data["yagis00Now"]
-
-        temp = f"{temp}°" if str(temp) != "-9999" else "n/a"
-        code = code.lower() if str(code) != "-9999" else "n/a"
-        wind = f"{wind:.1f}km/h" if str(wind) != "-9999" else "n/a"
-        rain = f"{rain}mm" if str(rain) != "-9999" else "n/a"
-
-        weather = f"{temp} {code} {wind} {rain}"
-
-        time.sleep(interval)
-
-
-def get_yahoo():
-    global yahoo
-    yahoo = "cookin"
-
-    while True:
-        url = "https://query1.finance.yahoo.com/v8/finance/chart/"
-        params = urllib.parse.urlencode({"USDTRY": "X"})
-        req = url + params
-
-        try:
-            with urllib.request.urlopen(req) as f:
-                data = json.loads(f.read().decode())
-        except urllib.error.HTTPError:
-            yahoo = "GET failed"
-
-        try:
-            yahoo = data["chart"]["result"][0]["meta"]["regularMarketPrice"]
-        except KeyError:
-            yahoo = "parse failed"
-
-        time.sleep(interval)
-
-
-def get_binance():
-    global binance
-    binance = "cooking"
-
-    while True:
-        url = "https://api.binance.com/api/v3/ticker/price?"
-        params = urllib.parse.urlencode({"symbol": "USDTTRY"})
-        req = url + params
-
-        try:
-            with urllib.request.urlopen(req) as f:
-                data = f.read().decode()
-        except urllib.error.HTTPError:
-            binance = "GET failed"
-
-        try:
-            binance = float(json.loads(data)["price"].rstrip("0"))
-        except KeyError:
-            binance = "parse failed"
-
-        time.sleep(interval)
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Statusbar generator for tmux and X11")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -349,15 +371,18 @@ if __name__ == "__main__":
         host = args.host
         port = args.port
 
+        err_sleep = 10
+        scrape = Scrape(args.area)
+
         threads = []
+        mgm_thread = Thread(target=scrape.get_mgm, daemon=True)
+        threads.append(mgm_thread)
 
-        binance_thread = Thread(target=get_binance, daemon=True)
-        yahoo_thread = Thread(target=get_yahoo, daemon=True)
-        weather_thread = Thread(target=get_weather, args=[args.area], daemon=True)
-
-        threads.append(binance_thread)
+        yahoo_thread = Thread(target=scrape.get_yahoo, daemon=True)
         threads.append(yahoo_thread)
-        threads.append(weather_thread)
+
+        binance_thread = Thread(target=scrape.get_binance, daemon=True)
+        threads.append(binance_thread)
 
         for job in threads:
             job.start()
@@ -370,7 +395,7 @@ if __name__ == "__main__":
             if os.path.isfile(IBMFAN_PATH):
                 finprint += f"/{get_battery()} {get_ibmfan()}"
 
-            finprint += f" ¦ {weather} ¦ {yahoo}/{binance}"
+            finprint += f" ¦ {scrape.mgm} ¦ {scrape.yahoo}/{scrape.binance}"
             finprint += f" ¦ {MPD(args.host, args.port).run()}"
             finprint += f" ¦ {get_date()}"
             finprint += '"'
