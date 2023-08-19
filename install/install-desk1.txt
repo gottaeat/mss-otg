@@ -177,13 +177,13 @@ sed -i -e 's|kernel.sysrq = 16|kernel.sysrq = 1|g' \
 ln -sfv /usr/share/zoneinfo/Europe/Istanbul /etc/localtime
 
 # 2.2.1 > configure bind
-pushd /var/named
- curl -L -O ftp://72.13.38.33/domain/named.root
- chown named:named *
-popd
+rm -rf /var/named
+cp -vfr "${fdir}"/var/named/ /var/
 
-> /var/log/named.log
-chown named:named /var/log/named.log
+for i in /etc/named.conf /var/named; do
+ chown -Rh named:named "${i}"
+ chmod 0700 "${i}"
+done
 
 #cp -vf "${fdir}"/etc/NetworkManager/conf.d/dns-servers.conf \
 # /etc/NetworkManager/conf.d/
