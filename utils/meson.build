@@ -1,5 +1,5 @@
 project('utils',
-        version: '83',
+        version: '84',
         license: 'GPL3',
         default_options: [
             'buildtype=plain',
@@ -14,6 +14,7 @@ files_bin = [
     'bin/chromium',
     'bin/colortest',
     'bin/comptoggle',
+    'bin/csv2pw',
     'bin/dn',
     'bin/dwmenu',
     'bin/fetch.py',
