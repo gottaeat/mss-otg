@@ -273,7 +273,7 @@ swapoffs="$(filefrag -v "/mnt/mss/stuff/techy-bits/swapfile" \
 cmdline="initrd=\intel-ucode.img initrd=\initramfs-linux-zen.img"
 cmdline="${cmdline} cryptdevice=/dev/sda2:cryptlvm root=/dev/arch/rootfs"
 cmdline="${cmdline} rw mitigations=off"
-cmdline="${cmdline} ipv6.disable=1
+cmdline="${cmdline} ipv6.disable=1"
 cmdline="${cmdline} preempt=full"
 cmdline="${cmdline} cpufreq.default_governor=schedutil"
 cmdline="${cmdline} iwlwifi.11n_disable=1 iwlwifi.power_save=0"
