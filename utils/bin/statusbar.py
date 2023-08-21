@@ -86,6 +86,9 @@ class MPD:
         if len(cursong) == 0:
             return "idle"
 
+        if cursong["volume"] == "n/a":
+            return "idle"
+
         songname = cursong.get("Title", re.sub(r"^.*\/|\.[^.]*$", "", cursong["file"]))
 
         if len(songname) >= 20:
