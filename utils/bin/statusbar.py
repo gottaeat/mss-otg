@@ -77,16 +77,17 @@ class MPD:
     def run(self):
         daemon_status = self._check_status()
 
-        if daemon_status[0] is not True:
+        if not daemon_status[0]:
             return daemon_status[1]
 
         status = self._parse(self._query("status\n"))
+
+        if status["state"] == "stop":
+            return "idle"
+
         cursong = self._parse(self._query("currentsong\n"))
 
         if len(cursong) == 0:
-            return "idle"
-
-        if cursong["volume"] == "n/a":
             return "idle"
 
         songname = cursong.get("Title", re.sub(r"^.*\/|\.[^.]*$", "", cursong["file"]))
