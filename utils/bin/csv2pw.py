@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # pylint: disable=missing-module-docstring,invalid-name,raise-missing-from
 import csv
 import sys

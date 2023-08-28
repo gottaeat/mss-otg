@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # pylint: disable=missing-module-docstring,missing-function-docstring
 import re
 import os
