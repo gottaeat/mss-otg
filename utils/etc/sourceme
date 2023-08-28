@@ -7,6 +7,10 @@ export   PAGER="less"
 export  EDITOR="vim"
 export GPG_TTY="$(tty)"
 
+if [ -z "${LANG}" ] || [ "${LANG}" = "C.UTF-8" ]; then
+ export LANG="en_US.UTF-8"
+fi
+
 # 1.3 > misc
 export            MPD_HOST="127.0.0.1"
 export     MOZ_USE_XINPUT2="1"
