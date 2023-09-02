@@ -1,0 +1,36 @@
+[Unit]
+Before=nftables.service
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+PrivateNetwork=yes
+PrivateMounts=no
+
+# precaution
+ExecStartPre=-/usr/bin/env ip netns delete libvirtd
+
+# cleanup
+ExecStart=/usr/bin/flock --no-fork -- /var/run/netns.lock /usr/bin/env ip netns add libvirtd
+ExecStart=/usr/bin/env umount /var/run/netns/libvirtd
+ExecStart=/usr/bin/env mount --bind /proc/self/ns/net /var/run/netns/libvirtd
+
+# add veth
+ExecStart=nsenter -t 1 -n -- ip link add libvirtd0 type veth peer name libvirtd0_ns
+ExecStart=sh -c 'nsenter -t 1 -n -- ip link set libvirtd0_ns netns libvirtd && true'
+ExecStart=ip link set libvirtd0_ns name eth0
+
+# bring host online
+ExecStart=nsenter -t 1 -n -- ip addr add 10.0.101.0/31 dev libvirtd0
+ExecStart=nsenter -t 1 -n -- ip link set libvirtd0 up
+
+# bring ns online
+ExecStart=ip addr add 10.0.101.1/31 dev eth0
+ExecStart=ip link set eth0 up
+ExecStart=ip route add default via 10.0.101.0 dev eth0
+
+# remove the netns
+ExecStop=/usr/bin/env ip netns delete libvirtd
