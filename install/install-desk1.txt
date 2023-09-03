@@ -228,7 +228,6 @@ visudo
 
 # 2.2.5 > nftables
 cp -vfr "${repodir}"/nftables/desk1.nft /etc/nftables.conf
-nft -f /etc/nftables.conf
 
 # 2.2.5.1 > nfqws
 cd /mnt/mss/stuff/techy-bits/git/mss-nfqws/
@@ -260,6 +259,8 @@ systemctl mask mpd.socket
 systemctl enable mpd.service
 
 systemctl mask iptables
+
+systemctl enable dockerns.service libvirtdns.service
 
 systemctl enable libvirtd.service virtlogd.service
 
