@@ -149,8 +149,11 @@ cp -vfr "${fdir}"/usr/share/dbus-1/system.d/* /usr/share/dbus-1/system.d/
 cp -vfr "${fdir}"/etc/X11/xorg.conf.d/01-intel-thinkpad.conf \
  /etc/X11/xorg.conf.d/
 
-ln -sfv /mnt/mss/stuff/techy-bits/vpn/mullvad-wg/wg0.conf \
+ln -sfv /mnt/mss/stuff/techy-bits/vpn/wg/05-client-solitude.conf \
  /etc/wireguard/wg0.conf
+
+ln -sfv /mnt/mss/stuff/techy-bits/vpn/mullvad-wg/wg1.conf \
+ /etc/wireguard/wg1.conf
 
 groupadd -r pulse
 groupadd -r pulse-access
@@ -225,10 +228,8 @@ mount /home/mss
 visudo
 
 # 2.2.5 > nftables
-setfirewall.py \
- --tcp 53 80 443 1337 1338 1935 3131 6666 8000 9091 \
- --udp 53                                           \
- --desktop
+cp -vfr "${repodir}"/nftables/desk1.nft /etc/nftables.conf
+nft -f /etc/nftables.conf
 
 # 2.2.5.1 > nfqws
 cd /mnt/mss/stuff/techy-bits/git/mss-nfqws/
@@ -273,6 +274,7 @@ swapoffs="$(filefrag -v "/mnt/mss/stuff/techy-bits/swapfile" \
 cmdline="initrd=\intel-ucode.img initrd=\initramfs-linux-zen.img"
 cmdline="${cmdline} cryptdevice=/dev/sda2:cryptlvm root=/dev/arch/rootfs"
 cmdline="${cmdline} rw mitigations=off"
+cmdline="${cmdline} net.ifnames=0"
 cmdline="${cmdline} ipv6.disable=1"
 cmdline="${cmdline} preempt=full"
 cmdline="${cmdline} cpufreq.default_governor=schedutil"
