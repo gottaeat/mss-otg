@@ -1,0 +1,72 @@
+#!/usr/bin/nft -f
+flush ruleset
+
+# wan
+define WAN_IFACE = enp1s0
+
+# vpn
+define VPN_IFACE = wg0
+define VPN_NET = 10.0.69.0/24
+define VPN_PORT = 6969
+
+# netns
+define DOCKER_IFACE = docker0
+define DOCKER_NS_IFACE_IP = 10.0.100.1
+
+# allow ports
+define TCP_ALLOW = { 80,443,1935,3131,8006,64738 }
+define UDP_ALLOW = { 64738 }
+
+# iface groups
+define NETNS_IF = { $DOCKER_IFACE }
+define PUB_IF = { $WAN_IFACE, $VPN_IFACE }
+
+
+table ip myfilter {
+    # FILTER<-INPUT
+    chain input {
+        type filter hook input priority filter; policy drop;
+        ct state established,related counter accept
+        iifname "lo" counter accept
+        iifname $NETNS_IF counter accept
+        iifname $PUB_IF tcp dport $TCP_ALLOW counter accept
+        iifname $PUB_IF udp dport $UDP_ALLOW counter accept
+        iifname $PUB_IF udp dport 33434-33524 limit rate 500/second counter accept
+        iifname $PUB_IF icmp type { echo-reply, echo-request } limit rate 2000/second counter accept
+        iifname $PUB_IF ip protocol icmp counter accept
+        iifname $WAN_IFACE udp dport $VPN_PORT counter accept
+        iifname $VPN_IFACE meta l4proto { tcp, udp } th dport 53 counter accept
+    }
+
+    # FILTER<-FORWARD
+    chain forward {
+        type filter hook forward priority filter; policy drop;
+        ct state established,related counter accept
+        iifname $NETNS_IF counter accept
+        iifname $WAN_IFACE oifname $NETNS_IF counter accept
+        iifname $VPN_IFACE oifname $WAN_IFACE tcp flags & (syn | rst) == syn tcp option maxseg size set 1360 counter
+        iifname $VPN_IFACE oifname { $WAN_IFACE, $NETNS_IF } counter accept
+        iifname $VPN_IFACE oifname $VPN_IFACE counter accept
+    }
+
+    # FILTER<-OUTPUT
+    chain output {
+        type filter hook output priority filter; policy accept;
+    }
+}
+
+# NAT
+table ip mynat {
+    # NAT<-POSTROUTING
+    chain postrouting {
+        type nat hook postrouting priority mangle; policy accept;
+        iifname $VPN_IFACE oifname $WAN_IFACE ip saddr $VPN_NET counter masquerade
+        iifname $NETNS_IF oifname $WAN_IFACE counter masquerade
+    }
+
+    # NAT<-PREROUTING
+    chain prerouting {
+        type nat hook prerouting priority mangle; policy accept;
+        iifname $PUB_IF fib daddr type local udp dport 10000 counter dnat to $DOCKER_NS_IFACE_IP:10000
+    }
+}

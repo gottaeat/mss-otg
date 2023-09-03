@@ -1,0 +1,65 @@
+#!/usr/bin/nft -f
+flush ruleset
+
+# wan
+define WAN_IFACE = { eth0, wlan0 }
+
+# netns
+define DOCKER_IFACE = docker0
+define DOCKER_NS_IFACE_IP = 10.0.100.1
+
+define LIBVIRTD_IFACE = libvirtd0
+define LIBVIRTD_NS_IFACE_IP = 10.0.101.1
+
+# allow ports
+define TCP_ALLOW = { 53,80,443,1337,1338,1935,3131,6666,8000,9091 }
+define UDP_ALLOW = { 53 }
+
+# iface groups
+define NETNS_IF = { $DOCKER_IFACE, $LIBVIRTD_IFACE }
+define PUB_IF = { $WAN_IFACE }
+
+
+table ip myfilter {
+    # FILTER<-INPUT
+    chain input {
+        type filter hook input priority filter; policy drop;
+        ct state established,related counter accept
+        iifname "lo" counter accept
+        iifname $NETNS_IF counter accept
+        iifname $PUB_IF tcp dport $TCP_ALLOW counter accept
+        iifname $PUB_IF udp dport $UDP_ALLOW counter accept
+        iifname $PUB_IF udp dport 33434-33524 limit rate 500/second counter accept
+        iifname $PUB_IF icmp type { echo-reply, echo-request } limit rate 2000/second counter accept
+        iifname $PUB_IF ip protocol icmp counter accept
+    }
+
+    # FILTER<-FORWARD
+    chain forward {
+        type filter hook forward priority filter; policy drop;
+        ct state established,related counter accept
+        iifname $NETNS_IF counter accept
+        iifname $WAN_IFACE oifname $NETNS_IF counter accept
+    }
+
+    # FILTER<-OUTPUT
+    chain output {
+        type filter hook output priority filter; policy accept;
+    }
+}
+
+# NAT
+table ip mynat {
+    # NAT<-POSTROUTING
+    chain postrouting {
+        type nat hook postrouting priority mangle; policy accept;
+        iifname $NETNS_IF oifname $WAN_IFACE counter masquerade
+    }
+
+    # NAT<-PREROUTING
+    chain prerouting {
+        type nat hook prerouting priority mangle; policy accept;
+        iifname $WAN_IFACE ip daddr 127.0.0.1 tcp dport 80 counter redirect to :1337
+        iifname $WAN_IFACE ip daddr 127.0.0.1 tcp dport 443 counter redirect to :1338
+    }
+}
