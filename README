@@ -1,19 +1,21 @@
 mss-otg
 =======
-├ dir/             -> base system configuration files.
+├ dir/            -> base system configuration files.
 ├ install/
 │ ├ pkglist
-│ │ ├ main/        -> list of mainline arch linux packages installed on each
-│ │ │                 machine.
-│ │ └ user/        -> ditto but for aur.
-│ └ install-*.txt  -> full coverage on complete installation and configuration.
-├ landfill/[1]     -> modified versions of dwm, st and dmenu cobbled together
-│                     under a single meson project as an attempt to create a
-│                     desktop environment type of thing.
-├ misc/            -> miscellaneous notes.
-└ utils/
-  ├ bin/           -> assortment of scripts.
-  ├ etc/           -> files complementing the scripts in ../bin/ and shells.
-  └ share/         -> handlers for systemd and others.
+│ │ ├ main/       -> list of mainline arch linux packages installed on each
+│ │ │                machine.
+│ │ └ user/       -> ditto but for aur.
+│ └ install-*.txt -> full coverage on complete installation and configuration.
+├ landfill/[1]    -> modified versions of dwm, st and dmenu cobbled together
+│                    under a single meson project as an attempt to create a
+│                    desktop environment type of thing.
+├ misc/           -> miscellaneous notes.
+├ nftables/       -> device specific packet filterin rules.
+├ utils/
+│ ├ bin/          -> assortment of scripts.
+│ ├ etc/          -> files complementing the scripts in ../bin/ and shells.
+│ └ share/        -> handlers for systemd and others.
+└ virtxml/        -> libvirt domain, netowrk and pool definitions.
 
 [1] dwm, st and dmenu are licensed under MIT.
