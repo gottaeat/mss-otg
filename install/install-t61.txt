@@ -228,7 +228,7 @@ mount /home/mss
 visudo
 
 # 2.2.5 > nftables
-cp -vfr "${repodir}"/nftables/desk1.nft /etc/nftables.conf
+cp -vfr "${repodir}"/nftables/t61.nft /etc/nftables.conf
 
 # 2.2.5.1 > nfqws
 cd /mnt/mss/stuff/techy-bits/git/mss-nfqws/
