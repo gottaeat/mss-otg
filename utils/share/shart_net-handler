@@ -1,0 +1,77 @@
+#!/bin/sh
+if [ ! "$(id -u)" -eq 0]; then
+    echo "This program requires root privileges."
+    exit 1
+fi
+
+private_ifname="shart_priv"
+private_address="$(awk '/^Address = /{print $3}' /etc/wireguard/${private_ifname}.conf)"
+private_fwmark="$(awk '/^FwMark = /{gsub(/0x/,""); print $3}' /etc/wireguard/${private_ifname}.conf)"
+private_mtu="$(awk '/^MTU = /{print $3}' /etc/wireguard/${private_ifname}.conf)"
+private_allowed="$(awk '/^AllowedIPs = /{print $3}' /etc/wireguard/${private_ifname}.conf)"
+
+public_ifname="shart_pub"
+public_address="$(awk '/^Address = /{print $3}' /etc/wireguard/${public_ifname}.conf)"
+public_address_nocidr="$(echo ${public_address} | sed 's/\/[^.]*$//g')"
+public_fwmark="$(awk '/^FwMark = /{gsub(/0x/,""); print $3}' /etc/wireguard/${public_ifname}.conf)"
+public_mtu="$(awk '/^MTU = /{print $3}' /etc/wireguard/${public_ifname}.conf)"
+public_allowed="$(awk '/^AllowedIPs = /{print $3}' /etc/wireguard/${public_ifname}.conf)"
+public_dns="$(awk '/^DNS = /{print $3}' /etc/wireguard/${public_ifname}.conf)"
+
+case "${1}" in
+    up)
+        sysctl -q net.ipv4.conf.all.src_valid_mark=1
+
+        nft 'add table ip shart_net'
+        nft 'create chain ip shart_net preraw {type filter hook prerouting priority raw; policy accept;}'
+        nft 'create chain ip shart_net premangle {type filter hook prerouting priority mangle; policy accept;}'
+        nft 'create chain ip shart_net postmangle {type filter hook postrouting priority mangle; policy accept;}'
+
+        nft "add rule ip shart_net preraw iifname != \"${public_ifname}\" ip daddr ${public_address_nocidr} fib saddr type != local drop"
+        nft 'add rule ip shart_net premangle meta l4proto udp meta mark set ct mark'
+        nft "add rule ip shart_net postmangle meta l4proto udp meta mark 0x0000${private_fwmark} ct mark set meta mark"
+        nft "add rule ip shart_net postmangle meta l4proto udp meta mark 0x0000${public_fwmark} ct mark set meta mark"
+
+        ip link add "${public_ifname}" type wireguard
+        ip link add "${private_ifname}" type wireguard
+
+        ip -4 address add "${public_address}" dev "${public_ifname}"
+        ip -4 address add "${private_address}" dev "${private_ifname}"
+
+        ip -4 link set mtu "${public_mtu}" up dev "${public_ifname}"
+        ip -4 link set mtu "${private_mtu}" up dev "${private_ifname}"
+
+        ip -4 route add "${public_allowed}" dev "${public_ifname}" table "0x${public_fwmark}"
+        ip -4 route add "${private_allowed}" dev "${private_ifname}"
+
+        ip -4 rule add not fwmark "0x${public_fwmark}" table "0x${public_fwmark}"
+        ip -4 rule add table main suppress_prefixlength 0
+        ip -4 rule add fwmark "0x${private_fwmark}" table main
+
+        wg setconf "${public_ifname}" <(wg-quick strip "${public_ifname}")
+        wg setconf "${private_ifname}" <(wg-quick strip "${private_ifname}")
+
+        mkdir "/tmp/bind/"
+        echo "zone \".\" { type forward; forwarders { ${public_dns}; }; };" > "/tmp/bind/named.conf.local"
+        rndc reload
+    ;;
+    down)
+        sysctl -q net.ipv4.conf.all.src_valid_mark=0
+
+        nft 'delete table ip shart_net'
+
+        ip link del "${public_ifname}"
+        ip link del "${private_ifname}"
+
+        ip -4 rule del not fwmark "0x${public_fwmark}" table "0x${public_fwmark}"
+        ip -4 rule del table main suppress_prefixlength 0
+        ip -4 rule del fwmark "0x${private_fwmark}" table main
+
+        mkdir "/tmp/bind/"
+        echo "zone \".\" { type hint; file \"/var/named/zone.root-nov6\"; };" > "/tmp/bind/named.conf.local"
+        rndc reload
+    ;;
+    *)
+        echo "Usage: ${0} {up|down}"
+    ;;
+esac
