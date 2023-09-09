@@ -93,7 +93,7 @@ meson setup ..; samu; sudo samu install
 
 cd ../; rm -rf build/; cd
 
-# 2.2.1 > configure /etc
+# 2.2.3 > configure /etc
 fdir="${repodir}/dir"
 
 echo "nameserver 172.16.0.1" > /etc/resolv.conf
@@ -127,10 +127,12 @@ cat /etc/fstab | column -t > /tmp/fstab; mv /tmp/fstab /etc/fstab
 
 cat << EOF > /etc/ssh/banner
 
- ╔────────────────────╗
- │ gat  - 172.16.0.2  │
- │ gatW - 172.16.0.11 │
- ╚────────────────────╝
+ ╔─────╗
+ │ gat │
+ ╠─────╩───────╦───────────╗
+ │ 172.16.0.2  │ 10.0.69.3 │
+ │ 172.16.0.11 │ 10.0.70.3 │
+ ╚─────────────╩───────────╝
 
 EOF
 
@@ -148,11 +150,17 @@ cp -vfr "${fdir}"/usr/share/dbus-1/system.d/* /usr/share/dbus-1/system.d/
 cp -vfr "${fdir}"/etc/X11/xorg.conf.d/01-desk1.conf \
  /etc/X11/xorg.conf.d/
 
-ln -sfv /mnt/mss/stuff/techy-bits/vpn/wg/03-client-gat.conf \
- /etc/wireguard/wg0.conf
+cp -vfr "${fdir}"/etc/NetworkManager/conf.d/dns-servers.conf \
+ /etc/NetworkManager/conf.d/
 
-ln -sfv /mnt/mss/stuff/techy-bits/vpn/mullvad-wg/wg1.conf \
- /etc/wireguard/wg1.conf
+cp -vfr "${fdir}"/etc/NetworkManager/system-connections/lo.nmconnection \
+ /etc/NetworkManager/system-connections/
+
+ln -sfv /mnt/mss/stuff/techy-bits/vpn/shart/client/3-gat-priv.conf \
+ /etc/wireguard/shart_priv.conf
+
+ln -sfv /mnt/mss/stuff/techy-bits/vpn/shart/client/3-gat-pub.conf \
+ /etc/wireguard/shart_pub.conf
 
 groupadd -r pulse
 groupadd -r pulse-access
@@ -179,7 +187,7 @@ sed -i -e 's|kernel.sysrq = 16|kernel.sysrq = 1|g' \
 
 ln -sfv /usr/share/zoneinfo/Europe/Istanbul /etc/localtime
 
-# 2.2.1 > configure bind
+# 2.2.4 > configure bind
 rm -rf /var/named
 cp -vfr "${fdir}"/var/named/ /var/
 
@@ -188,20 +196,28 @@ for i in /etc/named.conf /var/named; do
  chmod 0700 "${i}"
 done
 
-#cp -vf "${fdir}"/etc/NetworkManager/conf.d/dns-servers.conf \
-# /etc/NetworkManager/conf.d/
+rndc_conf="$(rndc-confgen)"
 
-# 2.2.2 > vim
+echo "${rndc_conf}" | grep -v ^\# > /etc/rndc.conf
+
+printf "\n%s\n%s\n" \
+    "// rndc" \
+    "$(echo "${rndc_conf}" | grep \# | grep -v ^\#\ [A-Z] | sed 's/^# //g')" \
+    >> /etc/named.conf
+
+unset rndc_conf
+
+# 2.2.5 > vim
 ln -sfv /usr/bin/vim /usr/bin/vi
 mkdir -pv ~/.config/vim/{backups,swaps}
 
-# 2.2.3 > arch init
+# 2.2.6 > arch init
 locale-gen
 
 pacman-key --init
 pacman-key --populate archlinux
 
-# 2.2.4 > users
+# 2.2.7 > users
 groupadd -g 1001 mss
 
 useradd \
@@ -226,10 +242,10 @@ mount /home/mss
 
 visudo
 
-# 2.2.5 > nftables
+# 2.2.8 > nftables
 cp -vfr "${repodir}"/nftables/desk1.nft /etc/nftables.conf
 
-# 2.2.5.1 > nfqws
+# 2.2.8.1 > nfqws
 cd /mnt/mss/stuff/techy-bits/git/mss-nfqws/
 
 mkdir build
@@ -242,11 +258,12 @@ samu install
 
 cd ../; rm -rf build/; cd
 
-# 2.2.6 > services
+# 2.2.9 > services
 systemctl enable NetworkManager
 systemctl enable gpm
 systemctl enable nftables
-#systemctl enable named
+systemctl enable named
+systemctl enable shart_net
 #systemctl enable mss-nfqws
 systemctl enable ntpd
 systemctl enable pulseaudio
@@ -269,7 +286,7 @@ sed -i -e 's/LimitNOFILE=infinity/LimitNOFILE=1024:524288/g' \
 
 systemctl enable docker
 
-# 2.2.7 > bootloader
+# 2.2.10 > bootloader
 mkinitcpio -P
 
 swapuuid="$(blkid `mount | awk '/\/mnt\/mss\/stuff/{print $1}'` \
@@ -299,7 +316,7 @@ reboot
 
 # 3 > user
 # 3.1 > yay
-git clone --depth=1 https://aur.archlinux.org/yay.git
+gcd1 https://aur.archlinux.org/yay.git
 cd  yay/
 
 makepkg -sri
@@ -309,9 +326,7 @@ cd ../; rm -rf yay/
 yay -Syu --noconfirm \
  `cat /mss/repo/install/pkglist/user/{base,desk1}.txt`
 
-# 3.3 > cleanup
-sudo -i
-
+# 3.2 > libvirt
 virsh pool-destroy --pool default
 virsh pool-undefine --pool default
 virsh net-destroy --network default
@@ -339,6 +354,8 @@ for i in "${xmldir}"/dom_*; do
  virsh define --file "${i}"
 done
 
+# 3.3 > cleanup
+sudo -i
 pacman -Qtdq | pacman -Rns - --noconfirm
 pacman -Scc --noconfirm
 
