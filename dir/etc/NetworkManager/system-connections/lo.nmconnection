@@ -1,0 +1,13 @@
+[connection]
+id=lo
+type=loopback
+interface-name=lo
+
+[ipv4]
+address1=127.0.0.1/8
+address2=10.0.99.0/32
+method=manual
+
+[ipv6]
+addr-gen-mode=default
+method=disabled
