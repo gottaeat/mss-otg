@@ -5,9 +5,13 @@ flush ruleset
 define WAN_IFACE = enp1s0
 
 # vpn
-define VPN_IFACE = wg0
-define VPN_NET = 10.0.69.0/24
-define VPN_PORT = 6969
+define VPN_PRIV_IFACE = vpn_priv
+define VPN_PRIV_NET = 10.0.69.0/24
+define VPN_PRIV_PORT = 6969
+
+define VPN_PUB_IFACE = vpn_pub
+define VPN_PUB_NET = 10.0.70.0/24
+define VPN_PUB_PORT = 6970
 
 # netns
 define DOCKER_IFACE = docker0
@@ -19,7 +23,7 @@ define UDP_ALLOW = { 64738 }
 
 # iface groups
 define NETNS_IF = { $DOCKER_IFACE }
-define PUB_IF = { $WAN_IFACE, $VPN_IFACE }
+define PUB_IF = { $WAN_IFACE, $VPN_PUB_IFACE }
 
 
 table ip myfilter {
@@ -29,13 +33,14 @@ table ip myfilter {
         ct state established,related counter accept
         iifname "lo" counter accept
         iifname $NETNS_IF counter accept
+        iifname $VPN_PRIV_IFACE counter accept
         iifname $PUB_IF tcp dport $TCP_ALLOW counter accept
         iifname $PUB_IF udp dport $UDP_ALLOW counter accept
         iifname $PUB_IF udp dport 33434-33524 limit rate 500/second counter accept
         iifname $PUB_IF icmp type { echo-reply, echo-request } limit rate 2000/second counter accept
         iifname $PUB_IF ip protocol icmp counter accept
-        iifname $WAN_IFACE udp dport $VPN_PORT counter accept
-        iifname $VPN_IFACE meta l4proto { tcp, udp } th dport 53 counter accept
+        iifname $WAN_IFACE udp dport {$VPN_PRIV_PORT, $VPN_PUB_PORT} counter accept
+        iifname $VPN_PUB_IFACE meta l4proto { tcp, udp } th dport 53 counter accept
     }
 
     # FILTER<-FORWARD
@@ -43,10 +48,11 @@ table ip myfilter {
         type filter hook forward priority filter; policy drop;
         ct state established,related counter accept
         iifname $NETNS_IF counter accept
+        iifname $VPN_PRIV_IFACE counter accept
         iifname $WAN_IFACE oifname $NETNS_IF counter accept
-        iifname $VPN_IFACE oifname $WAN_IFACE tcp flags & (syn | rst) == syn tcp option maxseg size set 1360 counter
-        iifname $VPN_IFACE oifname { $WAN_IFACE, $NETNS_IF } counter accept
-        iifname $VPN_IFACE oifname $VPN_IFACE counter accept
+        iifname $VPN_PUB_IFACE oifname { $WAN_IFACE, $NETNS_IF } counter accept
+        iifname $VPN_PUB_IFACE oifname $VPN_PUB_IFACE counter drop
+        iifname $VPN_PUB_IFACE oifname $VPN_PRIV_IFACE counter drop
     }
 
     # FILTER<-OUTPUT
@@ -60,7 +66,7 @@ table ip mynat {
     # NAT<-POSTROUTING
     chain postrouting {
         type nat hook postrouting priority mangle; policy accept;
-        iifname $VPN_IFACE oifname $WAN_IFACE ip saddr $VPN_NET counter masquerade
+        iifname $VPN_PUB_IFACE oifname $WAN_IFACE ip saddr $VPN_PUB_NET counter masquerade
         iifname $NETNS_IF oifname $WAN_IFACE counter masquerade
     }
 
