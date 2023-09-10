@@ -18,7 +18,7 @@ define DOCKER_IFACE = docker0
 define DOCKER_NS_IFACE_IP = 10.0.100.1
 
 # allow ports
-define TCP_ALLOW = { 80,443,1935,3131,8006,64738 }
+define TCP_ALLOW = { 80,443,1935,8006,64738 }
 define UDP_ALLOW = { 64738 }
 
 # iface groups
