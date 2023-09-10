@@ -1,5 +1,5 @@
-#!/bin/sh
-if [ ! "$(id -u)" -eq 0]; then
+#!/bin/bash
+if [ ! "$(id -u)" -eq 0 ]; then
     echo "This program requires root privileges."
     exit 1
 fi
@@ -51,7 +51,7 @@ case "${1}" in
         wg setconf "${public_ifname}" <(wg-quick strip "${public_ifname}")
         wg setconf "${private_ifname}" <(wg-quick strip "${private_ifname}")
 
-        mkdir "/tmp/bind/"
+        mkdir -p "/tmp/bind/"
         echo "zone \".\" { type forward; forwarders { ${public_dns}; }; };" > "/tmp/bind/named.conf.local"
         rndc reload
     ;;
@@ -67,9 +67,15 @@ case "${1}" in
         ip -4 rule del table main suppress_prefixlength 0
         ip -4 rule del fwmark "0x${private_fwmark}" table main
 
-        mkdir "/tmp/bind/"
+        mkdir -p "/tmp/bind/"
         echo "zone \".\" { type hint; file \"/var/named/zone.root-nov6\"; };" > "/tmp/bind/named.conf.local"
         rndc reload
+    ;;
+    named)
+        if [ ! -f "/tmp/bind/named.conf.local" ]; then
+            mkdir -p "/tmp/bind/"
+            echo "zone \".\" { type hint; file \"/var/named/zone.root-nov6\"; };" > "/tmp/bind/named.conf.local"
+        fi
     ;;
     *)
         echo "Usage: ${0} {up|down}"
