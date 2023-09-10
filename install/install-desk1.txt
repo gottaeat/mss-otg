@@ -1,3 +1,5 @@
+# vim: set ft=sh:
+
 # 1 > partitioning
 # 1.1 > esp
 mkfs.fat -F 32 /dev/sda1 -n EFI -v
@@ -150,12 +152,6 @@ cp -vfr "${fdir}"/usr/share/dbus-1/system.d/* /usr/share/dbus-1/system.d/
 cp -vfr "${fdir}"/etc/X11/xorg.conf.d/01-desk1.conf \
  /etc/X11/xorg.conf.d/
 
-cp -vfr "${fdir}"/etc/NetworkManager/conf.d/dns-servers.conf \
- /etc/NetworkManager/conf.d/
-
-cp -vfr "${fdir}"/etc/NetworkManager/system-connections/lo.nmconnection \
- /etc/NetworkManager/system-connections/
-
 ln -sfv /mnt/mss/stuff/techy-bits/vpn/shart/client/3-gat-priv.conf \
  /etc/wireguard/shart_priv.conf
 
@@ -187,7 +183,21 @@ sed -i -e 's|kernel.sysrq = 16|kernel.sysrq = 1|g' \
 
 ln -sfv /usr/share/zoneinfo/Europe/Istanbul /etc/localtime
 
-# 2.2.4 > configure bind
+# 2.2.4 > alternative loopback address and dns via networkmanager
+cp -vfr "${fdir}"/etc/NetworkManager/conf.d/dns-servers.conf \
+ /etc/NetworkManager/conf.d/
+
+for i in /etc/NetworkManager/system-connections/lo.nmconnection; do
+ sed \
+  -e "s|REPLACEMELOUUID|$(python -c 'from uuid import uuid4; print(uuid4())')|" \
+  "${fdir}"/etc/NetworkManager/system-connections/lo.nmconnection \
+   > "${i}"
+
+ chown root:root "${i}"
+ chmod 0600      "${i}"
+done
+
+# 2.2.5 > configure bind
 rm -rf /var/named
 cp -vfr "${fdir}"/var/named/ /var/
 
@@ -207,17 +217,17 @@ printf "\n%s\n%s\n" \
 
 unset rndc_conf
 
-# 2.2.5 > vim
+# 2.2.6 > vim
 ln -sfv /usr/bin/vim /usr/bin/vi
 mkdir -pv ~/.config/vim/{backups,swaps}
 
-# 2.2.6 > arch init
+# 2.2.7 > arch init
 locale-gen
 
 pacman-key --init
 pacman-key --populate archlinux
 
-# 2.2.7 > users
+# 2.2.8 > users
 groupadd -g 1001 mss
 
 useradd \
@@ -242,10 +252,10 @@ mount /home/mss
 
 visudo
 
-# 2.2.8 > nftables
+# 2.2.9 > nftables
 cp -vfr "${repodir}"/nftables/desk1.nft /etc/nftables.conf
 
-# 2.2.8.1 > nfqws
+# 2.2.9.1 > nfqws
 cd /mnt/mss/stuff/techy-bits/git/mss-nfqws/
 
 mkdir build
@@ -258,7 +268,7 @@ samu install
 
 cd ../; rm -rf build/; cd
 
-# 2.2.9 > services
+# 2.2.10 > services
 systemctl enable NetworkManager
 systemctl enable gpm
 systemctl enable nftables
@@ -286,7 +296,7 @@ sed -i -e 's/LimitNOFILE=infinity/LimitNOFILE=1024:524288/g' \
 
 systemctl enable docker
 
-# 2.2.10 > bootloader
+# 2.2.11 > bootloader
 mkinitcpio -P
 
 swapuuid="$(blkid `mount | awk '/\/mnt\/mss\/stuff/{print $1}'` \
