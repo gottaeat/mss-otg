@@ -7,7 +7,8 @@ WantedBy=multi-user.target
 
 [Service]
 Type=oneshot
-RemainAfterExit=no
+GuessMainPID=no
+RemainAfterExit=yes
 
 ExecStart=/mss/share/shart_net-handler up
 ExecStop=/mss/share/shart_net-handler down
