@@ -1,7 +1,10 @@
 [connection]
 id=lo
+uuid=REPLACEMELOUUID
 type=loopback
 interface-name=lo
+
+[loopback]
 
 [ipv4]
 address1=127.0.0.1/8
@@ -10,4 +13,6 @@ method=manual
 
 [ipv6]
 addr-gen-mode=default
-method=disabled
+method=auto
+
+[proxy]
