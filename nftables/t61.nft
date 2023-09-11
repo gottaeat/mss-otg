@@ -4,12 +4,13 @@ flush ruleset
 # wan
 define WAN_IFACE = { eth0, wlan0 }
 
-# allow ports
-define TCP_ALLOW = { 53,80,443,1337,1338,1935,3131,6666,8000,9091 }
-define UDP_ALLOW = { 53 }
+# vpn
+define VPN_PRIV_IFACE = shart_priv
+define VPN_PUB_IFACE = shart_pub
 
-# iface groups
-define PUB_IF = { $WAN_IFACE }
+# allow ports
+define TCP_ALLOW = { 80,443,3131,6666,8000,9091 }
+#define UDP_ALLOW = { }
 
 
 table ip myfilter {
@@ -18,17 +19,19 @@ table ip myfilter {
         type filter hook input priority filter; policy drop;
         ct state established,related counter accept
         iifname "lo" counter accept
-        iifname $PUB_IF tcp dport $TCP_ALLOW counter accept
-        iifname $PUB_IF udp dport $UDP_ALLOW counter accept
-        iifname $PUB_IF udp dport 33434-33524 limit rate 500/second counter accept
-        iifname $PUB_IF icmp type { echo-reply, echo-request } limit rate 2000/second counter accept
-        iifname $PUB_IF ip protocol icmp counter accept
+        iifname $VPN_PRIV_IFACE counter accept
+        iifname $WAN_IFACE tcp dport $TCP_ALLOW counter accept
+#       iifname $WAN_IFACE udp dport $UDP_ALLOW counter accept
+        iifname $WAN_IFACE udp dport 33434-33524 limit rate 500/second counter accept
+        iifname $WAN_IFACE icmp type { echo-reply, echo-request } limit rate 2000/second counter accept
+        iifname $WAN_IFACE ip protocol icmp counter accept
     }
 
     # FILTER<-FORWARD
     chain forward {
         type filter hook forward priority filter; policy drop;
         ct state established,related counter accept
+        iifname $VPN_PRIV_IFACE counter accept
     }
 
     # FILTER<-OUTPUT
@@ -41,13 +44,13 @@ table ip myfilter {
 table ip mynat {
     # NAT<-POSTROUTING
     chain postrouting {
-        type nat hook postrouting priority mangle; policy accept;
+        type nat hook postrouting priority srcnat; policy accept;
     }
 
     # NAT<-PREROUTING
     chain prerouting {
-        type nat hook prerouting priority mangle; policy accept;
-        iifname $WAN_IFACE ip daddr 127.0.0.1 tcp dport 80 counter redirect to :1337
-        iifname $WAN_IFACE ip daddr 127.0.0.1 tcp dport 443 counter redirect to :1338
+        type nat hook prerouting priority dstnat; policy accept;
+        fib daddr type local tcp dport 80 counter redirect to :1337
+        fib daddr type local tcp dport 443 counter redirect to :1338
     }
 }

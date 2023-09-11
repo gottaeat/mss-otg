@@ -65,14 +65,14 @@ table ip myfilter {
 table ip mynat {
     # NAT<-POSTROUTING
     chain postrouting {
-        type nat hook postrouting priority mangle; policy accept;
+        type nat hook postrouting priority srcnat; policy accept;
         iifname $VPN_PUB_IFACE oifname $WAN_IFACE ip saddr $VPN_PUB_NET counter masquerade
-        iifname $NETNS_IF oifname $WAN_IFACE counter masquerade
+        iifname $NETNS_IF oifname { $WAN_IFACE, $VPN_PUB_IFACE, $VPN_PRIV_IFACE } counter masquerade
     }
 
     # NAT<-PREROUTING
     chain prerouting {
-        type nat hook prerouting priority mangle; policy accept;
+        type nat hook prerouting priority dstnat; policy accept;
         iifname $PUB_IF fib daddr type local udp dport 10000 counter dnat to $DOCKER_NS_IFACE_IP:10000
     }
 }
