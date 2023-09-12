@@ -275,7 +275,8 @@ systemctl enable acpid
 systemctl enable gpm
 systemctl enable nftables
 systemctl enable named
-systemctl enable shart_net
+systemctl enable wg-shart_priv
+systemctl enable wg-shart_pub
 #systemctl enable mss-nfqws
 systemctl enable ntpd
 systemctl enable pulseaudio
