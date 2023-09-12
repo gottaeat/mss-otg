@@ -4,13 +4,45 @@ if [ ! "$(id -u)" -eq 0 ]; then
     exit 1
 fi
 
-if [ ! "${1}" ] || [ ! "${2}" ]; then
-    echo "Usage: ${0} {iface} {post-up|pre-down}"
-    exit 1
-fi
-
 priv_iface="shart_priv"
 pub_iface="shart_pub"
+
+print_usage(){
+    echo "Usage: {iface} {post-up|pre-down}"
+    echo "     : {named}"
+    exit 1
+}
+
+handle_zone(){
+    mkdir -p "/tmp/bind/"
+
+    case ${1} in
+        self)
+            echo "zone \".\" { type hint; file \"/var/named/zone.root-nov6\"; };" > "/tmp/bind/named.conf.local"
+        ;;
+        vpn)
+            echo "zone \".\" { type forward; forwarders { ${2}; }; };" > "/tmp/bind/named.conf.local"
+        ;;
+    esac
+
+    rndc reload
+}
+
+case "${1}" in
+    "${priv_iface}"|"${pub_iface}")
+        iface_name="${1}"
+    ;;
+    named)
+        handle_zone self
+        exit 0
+    ;;
+    *)
+        print_usage
+    ;;
+esac
+
+
+
 wg_iface_list="$(wg show interfaces | sed 's/ /\n/g')"
 
 iface_name="${1}"
@@ -48,9 +80,7 @@ case "${2}" in
                 ip -4 rule add pref "$((${iface_fwmark}))" table main suppress_prefixlength 0
                 ip -4 rule add pref "$((${iface_fwmark}+1))" not fwmark "0x${iface_fwmark}" table "0x${iface_fwmark}"
 
-                mkdir -p "/tmp/bind/"
-                echo "zone \".\" { type forward; forwarders { ${iface_addr_dns}; }; };" > "/tmp/bind/named.conf.local"
-                rndc reload
+                handle_zone vpn "${iface_addr_dns}"
             ;;
         esac
     ;;
@@ -95,10 +125,11 @@ case "${2}" in
                     done
                 fi
 
-                mkdir -p "/tmp/bind/"
-                echo "zone \".\" { type hint; file \"/var/named/zone.root-nov6\"; };" > "/tmp/bind/named.conf.local"
-                rndc reload
+                handle_zone self
             ;;
         esac
+    ;;
+    *)
+        print_usage
     ;;
 esac
