@@ -1,0 +1,14 @@
+[Unit]
+Description=SHART Private WireGuard
+Before=nftables.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/wg-quick up shart_priv
+ExecStop=/usr/bin/wg-quick down shart_priv
+ExecReload=/bin/bash -c 'exec /usr/bin/wg syncconf shart_priv <(exec /usr/bin/wg-quick strip shart_priv)'
+Environment=WG_ENDPOINT_RESOLUTION_RETRIES=infinity
+
+[Install]
+WantedBy=multi-user.target
