@@ -1,6 +1,8 @@
 [Unit]
 Description=SHART Private WireGuard
 Before=nftables.service
+Requires=network-online.target named.service
+After=network-online.target named.service
 
 [Service]
 Type=oneshot
