@@ -16,7 +16,7 @@ define LIBVIRTD_IFACE = libvirtd0
 define LIBVIRTD_NS_IFACE_IP = 10.0.101.1
 
 # allow ports
-define TCP_ALLOW = { 80,443,3131,6666,8000,9091 }
+define TCP_ALLOW = { 80,443,1337,1338,3131,6666,8000,9091 }
 #define UDP_ALLOW = { }
 
 # iface groups
@@ -65,7 +65,7 @@ table ip mynat {
     # NAT<-PREROUTING
     chain prerouting {
         type nat hook prerouting priority dstnat; policy accept;
-        fib daddr type local tcp dport 80 counter redirect to :1337
-        fib daddr type local tcp dport 443 counter redirect to :1338
+#       fib daddr type local tcp dport 80 counter redirect to :1337
+#       fib daddr type local tcp dport 443 counter redirect to :1338
     }
 }
