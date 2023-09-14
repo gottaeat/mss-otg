@@ -4,9 +4,6 @@ rootcheck
 
 bind_tmpdir="/tmp/bind"
 
-priv_iface="shart_priv"
-pub_iface="shart_pub"
-
 print_usage(){
     aprint_usage "{iface} {post-up|pre-down}"
     aprint_usage "{named}"
@@ -29,21 +26,17 @@ handle_zone(){
     esac
 }
 
-case "${1}" in
-    "${priv_iface}"|"${pub_iface}")
-        iface_name="${1}"
-    ;;
-    named)
-        handle_zone self
-        exit 0
-    ;;
-    *)
-        print_usage
+[ -z "${1}" ] && print_usage
+
+case "${1}" in named)
+    handle_zone self
+    exit 0
     ;;
 esac
 
 wg_iface_list="$(wg show interfaces | sed 's/ /\n/g')"
 
+iface_name="${1}"
 iface_fwmark="$(wg show ${iface_name} fwmark | sed 's/^0x//')"
 iface_allowed="$(wg show ${iface_name} allowed-ips | awk '{print $2}')"
 iface_addr_nocidr="$(ip addr show ${iface_name} | awk '/inet/{sub(/\/[^.]*$/, ""); print $2}')"

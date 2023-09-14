@@ -1,5 +1,5 @@
 project('utils',
-        version: '96',
+        version: '97',
         license: 'GPL3',
         default_options: [
             'buildtype=plain',
@@ -47,7 +47,7 @@ files_etc = [
 
 files_share = [
     'share/bash-handler',
-    'share/shart_net-handler'
+    'share/multiwg-handler'
 ]
 
 install_data(files_bin, install_dir: join_paths(get_option('prefix'), 'bin'))
