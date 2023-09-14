@@ -1,31 +1,32 @@
 #!/bin/bash
-if [ ! "$(id -u)" -eq 0 ]; then
-    echo "This program requires root privileges."
-    exit 1
-fi
+. /mss/etc/funcs
+rootcheck
+
+bind_tmpdir="/tmp/bind"
 
 priv_iface="shart_priv"
 pub_iface="shart_pub"
 
 print_usage(){
-    echo "Usage: {iface} {post-up|pre-down}"
-    echo "     : {named}"
+    aprint_usage "{iface} {post-up|pre-down}"
+    aprint_usage "{named}"
     exit 1
 }
 
 handle_zone(){
-    mkdir -p "/tmp/bind/"
+    [ ! -d "${bind_tmpdir}" ] && mkdir "${bind_tmpdir}"
 
     case ${1} in
         self)
             echo "zone \".\" { type hint; file \"/var/named/zone.root-nov6\"; };" > "/tmp/bind/named.conf.local"
+
+            [ "${2}" = "reload" ] && rndc reload
         ;;
         vpn)
             echo "zone \".\" { type forward; forwarders { ${2}; }; };" > "/tmp/bind/named.conf.local"
+            rndc reload
         ;;
     esac
-
-    rndc reload
 }
 
 case "${1}" in
@@ -41,11 +42,8 @@ case "${1}" in
     ;;
 esac
 
-
-
 wg_iface_list="$(wg show interfaces | sed 's/ /\n/g')"
 
-iface_name="${1}"
 iface_fwmark="$(wg show ${iface_name} fwmark | sed 's/^0x//')"
 iface_allowed="$(wg show ${iface_name} allowed-ips | awk '{print $2}')"
 iface_addr_nocidr="$(ip addr show ${iface_name} | awk '/inet/{sub(/\/[^.]*$/, ""); print $2}')"
@@ -57,24 +55,18 @@ case "${2}" in
             sysctl -q net.ipv4.conf.all.src_valid_mark=1
         fi
 
-        if ! nft list table ip shart_net >/dev/null 2>&1; then
-            nft 'add table ip shart_net'
-            nft 'create chain ip shart_net preraw {type filter hook prerouting priority raw; policy accept;}'
-            nft 'create chain ip shart_net premangle {type filter hook prerouting priority mangle; policy accept;}'
-            nft 'create chain ip shart_net postmangle {type filter hook postrouting priority mangle; policy accept;}'
-            nft 'add rule ip shart_net premangle meta l4proto udp meta mark set ct mark'
+        if ! nft list table ip "wg-${iface_name}" >/dev/null 2>&1; then
+            nft "add table ip wg-${iface_name}"
+            nft "create chain ip wg-${iface_name} premangle {type filter hook prerouting priority mangle; policy accept;}"
+            nft "create chain ip wg-${iface_name} postmangle {type filter hook postrouting priority mangle; policy accept;}"
+            nft "add rule ip wg-${iface_name} premangle meta l4proto udp meta mark set ct mark"
+            nft "add rule ip wg-${iface_name} postmangle meta l4proto udp meta mark 0x0000${iface_fwmark} ct mark set meta mark"
         fi
 
-        case "${iface_name}" in
-            "${priv_iface}")
-                nft "add rule ip shart_net postmangle meta l4proto udp meta mark 0x0000${iface_fwmark} ct mark set meta mark comment \"${iface_name}RULE\""
-
-                ip -4 route add "${iface_allowed}" dev "${iface_name}"
-                ip -4 rule add pref "${iface_fwmark}" fwmark "0x${iface_fwmark}" table main
-            ;;
-            "${pub_iface}")
-                nft "add rule ip shart_net preraw iifname != \"${iface_name}\" ip daddr ${iface_addr_nocidr} fib saddr type != local drop comment \"${iface_name}RULE\""
-                nft "add rule ip shart_net postmangle meta l4proto udp meta mark 0x0000${iface_fwmark} ct mark set meta mark comment \"${iface_name}RULE\""
+        case "${iface_allowed}" in
+            0.0.0.0/0)
+                nft "create chain ip wg-${iface_name} preraw {type filter hook prerouting priority raw; policy accept;}"
+                nft "add rule ip wg-${iface_name} preraw iifname != \"${iface_name}\" ip daddr ${iface_addr_nocidr} fib saddr type != local drop"
 
                 ip -4 route add "${iface_allowed}" dev "${iface_name}" table "0x${iface_fwmark}"
                 ip -4 rule add pref "$((${iface_fwmark}))" table main suppress_prefixlength 0
@@ -82,50 +74,28 @@ case "${2}" in
 
                 handle_zone vpn "${iface_addr_dns}"
             ;;
+            *)
+                ip -4 route add "${iface_allowed}" dev "${iface_name}"
+                ip -4 rule add pref "${iface_fwmark}" fwmark "0x${iface_fwmark}" table main
+            ;;
         esac
     ;;
     pre-down)
-        if [ "$(echo "${wg_iface_list}" | grep -v ${iface_name} | wc -l)" -gt 0 ];
-            then
-                sysctl -q net.ipv4.conf.all.src_valid_mark=0
-                nftstatus="here"
-                chains="$(nft list table ip shart_net | awk '/^[[:space:]]chain/{print $2}')"
-            else
-                nft 'delete table ip shart_net' || true
-                nftstatus="gone"
+        if [ "$(echo "${wg_iface_list}" | grep -v ${iface_name} | wc -l)" -eq 0 ]; then
+            sysctl -q net.ipv4.conf.all.src_valid_mark=0
         fi
 
-        case "${iface_name}" in
-            "${priv_iface}")
-                ip -4 rule del fwmark "0x${iface_fwmark}" table main
+        nft "delete table ip wg-${iface_name}"
 
-                if [ "${nftstatus}" = "here" ]; then
-                    for i in ${chains}; do
-                        rule_handles=`nft -a list chain ip shart_net preraw | grep "${iface_name}RULE" | awk '{print $NF}'`
-                        if [ ! "$(echo "${rule_handles}" | wc -l)" -eq 0 ]; then
-                            for rule in ${rule_handles}; do
-                                nft "delete rule shart_net ${i} handle ${rule}"
-                            done
-                        fi
-                    done
-                fi
-            ;;
-            "${pub_iface}")
+        case "${iface_allowed}" in
+            0.0.0.0/0)
                 ip -4 rule del table main suppress_prefixlength 0
                 ip -4 rule del not fwmark "0x${iface_fwmark}" table "0x${iface_fwmark}"
 
-                if [ "${nftstatus}" = "here" ]; then
-                    for i in ${chains}; do
-                        rule_handles=`nft -a list chain ip shart_net preraw | grep "${iface_name}RULE" | awk '{print $NF}'`
-                        if [ ! "$(echo "${rule_handles}" | wc -l)" -eq 0 ]; then
-                            for rule in ${rule_handles}; do
-                                nft "delete rule shart_net ${i} handle ${rule}"
-                            done
-                        fi
-                    done
-                fi
-
-                handle_zone self
+                handle_zone self reload
+            ;;
+            *)
+                ip -4 rule del fwmark "0x${iface_fwmark}" table main
             ;;
         esac
     ;;
