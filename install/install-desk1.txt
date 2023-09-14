@@ -273,8 +273,6 @@ systemctl enable NetworkManager
 systemctl enable gpm
 systemctl enable nftables
 systemctl enable named
-systemctl enable wg-shart_priv
-systemctl enable wg-shart_pub
 #systemctl enable mss-nfqws
 systemctl enable ntpd
 systemctl enable pulseaudio
@@ -296,6 +294,9 @@ sed -i -e 's/LimitNOFILE=infinity/LimitNOFILE=1024:524288/g' \
  /usr/lib/systemd/system/{containerd,docker}.service
 
 systemctl enable docker
+
+systemctl enable wg-quick@shart_pub
+systemctl enable wg-quick@shart_priv
 
 # 2.2.11 > bootloader
 mkinitcpio -P
