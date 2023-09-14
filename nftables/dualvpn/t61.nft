@@ -5,21 +5,12 @@ flush ruleset
 define WAN_IFACE = { eth0, wlan0 }
 
 # vpn
-define VPN_IFACE = lichen
-
-# netns
-define DOCKER_IFACE = docker0
-define DOCKER_NS_IFACE_IP = 10.0.100.1
-
-define LIBVIRTD_IFACE = libvirtd0
-define LIBVIRTD_NS_IFACE_IP = 10.0.101.1
+define VPN_PRIV_IFACE = lichenpriv
+define VPN_PUB_IFACE = lichenpub
 
 # allow ports
 define TCP_ALLOW = { 80,443,1337,1338,3131,6666,8000,9091 }
 #define UDP_ALLOW = { }
-
-# iface groups
-define NETNS_IF = { $DOCKER_IFACE, $LIBVIRTD_IFACE }
 
 
 table ip myfilter {
@@ -28,8 +19,7 @@ table ip myfilter {
         type filter hook input priority filter; policy drop;
         ct state established,related counter accept
         iifname "lo" counter accept
-        iifname $NETNS_IF counter accept
-        iifname $VPN_IFACE counter accept
+        iifname $VPN_PRIV_IFACE counter accept
         iifname $WAN_IFACE tcp dport $TCP_ALLOW counter accept
 #       iifname $WAN_IFACE udp dport $UDP_ALLOW counter accept
         iifname $WAN_IFACE udp dport 33434-33524 limit rate 500/second counter accept
@@ -41,10 +31,7 @@ table ip myfilter {
     chain forward {
         type filter hook forward priority filter; policy drop;
         ct state established,related counter accept
-        iifname $NETNS_IF oifname $VPN_IFACE tcp flags & (syn|rst) == syn tcp option maxseg size set 1360 counter
-        iifname $NETNS_IF counter accept
-        iifname $VPN_IFACE counter accept
-        iifname $WAN_IFACE oifname $NETNS_IF counter accept
+        iifname $VPN_PRIV_IFACE counter accept
     }
 
     # FILTER<-OUTPUT
@@ -58,7 +45,6 @@ table ip mynat {
     # NAT<-POSTROUTING
     chain postrouting {
         type nat hook postrouting priority srcnat; policy accept;
-        iifname $NETNS_IF oifname { $WAN_IFACE, $VPN_IFACE } counter masquerade
     }
 
     # NAT<-PREROUTING

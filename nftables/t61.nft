@@ -5,8 +5,7 @@ flush ruleset
 define WAN_IFACE = { eth0, wlan0 }
 
 # vpn
-define VPN_PRIV_IFACE = shart_priv
-define VPN_PUB_IFACE = shart_pub
+define VPN_IFACE = lichen
 
 # allow ports
 define TCP_ALLOW = { 80,443,1337,1338,3131,6666,8000,9091 }
@@ -19,7 +18,7 @@ table ip myfilter {
         type filter hook input priority filter; policy drop;
         ct state established,related counter accept
         iifname "lo" counter accept
-        iifname $VPN_PRIV_IFACE counter accept
+        iifname $VPN_IFACE counter accept
         iifname $WAN_IFACE tcp dport $TCP_ALLOW counter accept
 #       iifname $WAN_IFACE udp dport $UDP_ALLOW counter accept
         iifname $WAN_IFACE udp dport 33434-33524 limit rate 500/second counter accept
@@ -31,7 +30,7 @@ table ip myfilter {
     chain forward {
         type filter hook forward priority filter; policy drop;
         ct state established,related counter accept
-        iifname $VPN_PRIV_IFACE counter accept
+        iifname $VPN_IFACE counter accept
     }
 
     # FILTER<-OUTPUT
