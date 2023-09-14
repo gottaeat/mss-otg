@@ -153,11 +153,8 @@ cp -vfr "${fdir}"/usr/share/dbus-1/system.d/* /usr/share/dbus-1/system.d/
 cp -vfr "${fdir}"/etc/X11/xorg.conf.d/01-intel-thinkpad.conf \
  /etc/X11/xorg.conf.d/
 
-ln -sfv /mnt/mss/stuff/techy-bits/vpn/shart/client/4-ashtray-priv.conf \
- /etc/wireguard/shart_priv.conf
-
-ln -sfv /mnt/mss/stuff/techy-bits/vpn/shart/client/4-ashtray-pub.conf \
- /etc/wireguard/shart_pub.conf
+ln -sfv /mnt/mss/stuff/techy-bits/vpn/lichen/client/3-ashtray-lichen.conf \
+ /etc/wireguard/lichen.conf
 
 groupadd -r pulse
 groupadd -r pulse-access
@@ -273,9 +270,9 @@ cd ../; rm -rf build/; cd
 systemctl enable NetworkManager
 systemctl enable acpid
 systemctl enable gpm
-systemctl enable nftables
-systemctl enable named
 #systemctl enable mss-nfqws
+systemctl enable named
+systemctl enable nftables
 systemctl enable ntpd
 systemctl enable pulseaudio
 systemctl enable sshd
@@ -283,13 +280,12 @@ systemctl enable tor
 systemctl enable transmission
 systemctl enable vnstat
 
+systemctl enable wg-quick@lichen
+
 systemctl mask mpd.socket
 systemctl enable mpd.service
 
 systemctl mask iptables
-
-systemctl enable wg-quick@shart_pub
-systemctl enable wg-quick@shart_priv
 
 # 2.2.11 > bootloader
 mkinitcpio -P
