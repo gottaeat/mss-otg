@@ -61,6 +61,7 @@ noto-fonts-emoji
 ntp
 openssh
 openvpn
+pacman-contrib
 partclone
 patchelf
 pavucontrol
@@ -80,6 +81,7 @@ python-pip
 python-pylint
 python-requests
 python-yaml
+qbittorrent-nox
 reaver
 redshift
 rsync
@@ -91,7 +93,6 @@ tcpdump
 terminus-font
 tmux
 tor
-transmission-cli
 ttf-croscore
 ttf-sazanami
 unrar
