@@ -43,6 +43,13 @@ mount /dev/arch/stuff /stuff
 
 # 2 > action
 # 2.1 > lay base
+pacman -Sy pacman-contrib
+
+curl -s "https://archlinux.org/mirrorlist/\
+?ip_version=4&protocol=https&use_mirror_status=on&country=RO&country=DE" \
+ | sed -e 's/^#Server/Server/' -e '/^#/d' | rankmirrors - \
+ > /etc/pacman.d/mirrorlist 
+
 cat << EOF >> /etc/pacman.conf
 [multilib]
 Include = /etc/pacman.d/mirrorlist
@@ -52,6 +59,8 @@ pacman -Sy
 
 pacstrap -K /mnt \
  `cat /stuff/techy-bits/git/mss-otg/install/pkglist/main/{base,desk1}.txt`
+
+cp -vfr /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/mirrorlist
 
 arch-chroot /mnt
 
@@ -266,8 +275,15 @@ samu install
 cd ../; rm -rf build/; cd
 
 # 2.2.10 > services
+sed -i -e 's/LimitNOFILE=infinity/LimitNOFILE=1024:524288/g' \
+ /usr/lib/systemd/system/{containerd,docker}.service
+
+systemctl mask mpd.socket
+systemctl mask iptables
+
 systemctl enable NetworkManager
 systemctl enable gpm
+systemctl enable mpd.service
 #systemctl enable mss-nfqws
 systemctl enable named
 systemctl enable nftables
@@ -275,24 +291,13 @@ systemctl enable ntpd
 systemctl enable pulseaudio
 systemctl enable sshd
 systemctl enable tor
-systemctl enable transmission
 systemctl enable vnstat
 
 systemctl enable wg-quick@lichen
+systemctl enable qbittorrent-nox@mss.service
 
-systemctl mask mpd.socket
-systemctl enable mpd.service
-
-systemctl mask iptables
-
-systemctl enable dockerns.service libvirtdns.service
-
-systemctl enable libvirtd.service virtlogd.service
-
-sed -i -e 's/LimitNOFILE=infinity/LimitNOFILE=1024:524288/g' \
- /usr/lib/systemd/system/{containerd,docker}.service
-
-systemctl enable docker
+systemctl enable dockerns.service docker
+systemctl enable libvirtdns.service libvirtd.service virtlogd.service 
 
 # 2.2.11 > bootloader
 mkinitcpio -P
