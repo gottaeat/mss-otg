@@ -11,6 +11,7 @@ clinfo
 diffutils
 dosfstools
 dsniff
+element-desktop
 fdupes
 feh
 ffmpeg
@@ -61,6 +62,7 @@ noto-fonts-emoji
 ntp
 openssh
 openvpn
+p7zip
 pacman-contrib
 partclone
 patchelf
@@ -102,6 +104,7 @@ vifm
 vim
 vnstat
 wget
+whois
 wireguard-tools
 wireshark-qt
 xclip

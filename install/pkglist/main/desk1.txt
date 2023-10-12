@@ -30,5 +30,6 @@ virt-manager
 vulkan-icd-loader
 vulkan-radeon 
 wine
+wine-mono
 winetricks
 xf86-video-amdgpu
