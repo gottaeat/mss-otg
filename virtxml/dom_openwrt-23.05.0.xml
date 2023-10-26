@@ -1,5 +1,5 @@
 <domain type="kvm">
-    <name>openwrt-22.03.5</name>
+    <name>openwrt-23.05.0</name>
     <memory unit="M">512</memory>
     <vcpu placement="static">2</vcpu>
     <os>
