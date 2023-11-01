@@ -2,10 +2,10 @@
 flush ruleset
 
 # wan
-define WAN_IFACE = enp1s0
+define WAN_IFACE = eth0
 
 # vpn
-define VPN_IFACE = lichen
+define VPN_IFACE = nightops
 define VPN_NET = 10.0.69.0/24
 define VPN_PORT = 6969
 
@@ -14,8 +14,8 @@ define DOCKER_IFACE = docker0
 define DOCKER_NS_IFACE_IP = 10.0.100.1
 
 # allow ports
-define TCP_ALLOW = { 80,443,1935,3131,8006,64738 }
-define UDP_ALLOW = { 64738 }
+define TCP_ALLOW = { 80,443,3131,8006 }
+#define UDP_ALLOW = { }
 
 # iface groups
 define NETNS_IF = { $DOCKER_IFACE }
@@ -29,7 +29,7 @@ table ip myfilter {
         iifname $NETNS_IF counter accept
         iifname $VPN_IFACE counter accept
         iifname $WAN_IFACE tcp dport $TCP_ALLOW counter accept
-        iifname $WAN_IFACE udp dport $UDP_ALLOW counter accept
+#       iifname $WAN_IFACE udp dport $UDP_ALLOW counter accept
         iifname $WAN_IFACE udp dport 33434-33524 limit rate 500/second counter accept
         iifname $WAN_IFACE icmp type { echo-reply, echo-request } limit rate 2000/second counter accept
         iifname $WAN_IFACE ip protocol icmp counter accept
