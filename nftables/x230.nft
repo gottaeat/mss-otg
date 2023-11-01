@@ -5,7 +5,7 @@ flush ruleset
 define WAN_IFACE = { eth0, wlan0 }
 
 # vpn
-define VPN_IFACE = lichen
+define VPN_IFACE = nightops
 
 # allow ports
 define TCP_ALLOW = { 80,443,1337,1338,3131,6666,8000,9091 }
