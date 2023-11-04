@@ -1,0 +1,4 @@
+$TTL 1W
+@ CH SOA localhost. root.localhost. ( 1 1W 1D 4W 1W )
+@ CH NS localhost.
+;id CH TXT
