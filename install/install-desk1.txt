@@ -221,7 +221,8 @@ echo "${rndc_conf}" | grep -v ^\# > /etc/rndc.conf
 
 printf "\n%s\n%s\n" \
     "// rndc" \
-    "$(echo "${rndc_conf}" | grep \# | grep -v ^\#\ [A-Z] | sed 's/^# //g')" \
+    "$(echo "${rndc_conf}" | grep \# | grep -v ^\#\ [A-Z] \
+        | sed 's/^# //g;s/allow\ {\ 127\.0\.0\.1/allow { \"loopback\"/g;')" \
     >> /etc/named.conf
 
 unset rndc_conf
