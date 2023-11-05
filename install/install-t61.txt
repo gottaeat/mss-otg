@@ -107,6 +107,8 @@ cd ../; rm -rf build/; cd
 # 2.2.3 > configure /etc
 fdir="${repodir}/dir"
 
+rm -rfv /etc/resolv.conf
+
 echo "nameserver 172.16.0.1" > /etc/resolv.conf
 echo "ashtray"               > /etc/hostname
 
@@ -194,7 +196,7 @@ sed -i -e 's|kernel.sysrq = 16|kernel.sysrq = 1|g' \
 ln -sfv /usr/share/zoneinfo/Europe/Istanbul /etc/localtime
 
 # 2.2.4 > alternative loopback address and dns via networkmanager
-cp -vfr "${fdir}"/etc/NetworkManager/conf.d/dns-servers.conf \
+cp -vfr "${fdir}"/etc/NetworkManager/conf.d/dns.conf \
  /etc/NetworkManager/conf.d/
 
 for i in /etc/NetworkManager/system-connections/lo.nmconnection; do
@@ -298,6 +300,10 @@ systemctl enable vnstat
 systemctl enable wg-quick@nightops
 systemctl enable qbittorrent-nox@mss.service
 
+cat << EOF > /etc/resolv.conf
+search crib
+nameserver 10.0.99.0
+EOF
 
 # 2.2.11 > bootloader
 mkinitcpio -P
