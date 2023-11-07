@@ -318,19 +318,22 @@ def get_bandwidth():
     rx_path = f"/sys/class/net/{iface}/statistics/rx_bytes"
     tx_path = f"/sys/class/net/{iface}/statistics/tx_bytes"
 
-    with open(rx_path, "r", encoding="utf-8") as f:
-        rx_before = int(f.read())
+    try:
+        with open(rx_path, "r", encoding="utf-8") as f:
+            rx_before = int(f.read())
 
-    with open(tx_path, "r", encoding="utf-8") as f:
-        tx_before = int(f.read())
+        with open(tx_path, "r", encoding="utf-8") as f:
+            tx_before = int(f.read())
 
-    time.sleep(1)
+        time.sleep(1)
 
-    with open(rx_path, "r", encoding="utf-8") as f:
-        rx_after = int(f.read())
+        with open(rx_path, "r", encoding="utf-8") as f:
+            rx_after = int(f.read())
 
-    with open(tx_path, "r", encoding="utf-8") as f:
-        tx_after = int(f.read())
+        with open(tx_path, "r", encoding="utf-8") as f:
+            tx_after = int(f.read())
+    except FileNotFoundError:
+        return "no conn"
 
     rx_rate = int((rx_after - rx_before) / 1024)
     tx_rate = int((tx_after - tx_before) / 1024)
