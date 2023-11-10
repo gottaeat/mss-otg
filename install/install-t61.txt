@@ -164,11 +164,11 @@ cp -vfr "${fdir}"/usr/share/dbus-1/system.d/* /usr/share/dbus-1/system.d/
 cp -vfr "${fdir}"/etc/X11/xorg.conf.d/01-intel-thinkpad.conf \
  /etc/X11/xorg.conf.d/
 
-ln -sfv /mnt/mss/stuff/techy-bits/vpn/nightops/client/ashtray-nightops.conf \
- /etc/wireguard/nightops.conf
+ln -sfv /mnt/mss/stuff/techy-bits/vpn/ops/client/ashtray-ops.conf \
+ /etc/wireguard/ops.conf
 
-ln -sfv /mnt/mss/stuff/techy-bits/vpn/nightops/client/ashtray-nightops-tcp.conf \
- /etc/wireguard/nightops-tcp.conf
+ln -sfv /mnt/mss/stuff/techy-bits/vpn/ops/client/ashtray-opsraw.conf \
+ /etc/wireguard/opsraw.conf
 
 groupadd -r pulse
 groupadd -r pulse-access
@@ -297,7 +297,7 @@ systemctl enable sshd
 systemctl enable tor
 systemctl enable vnstat
 
-systemctl enable wg-quick@nightops
+systemctl enable wg-quick@ops
 systemctl enable qbittorrent-nox@mss.service
 
 cat << EOF > /etc/resolv.conf

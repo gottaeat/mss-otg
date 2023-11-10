@@ -5,11 +5,11 @@ flush ruleset
 define WAN_IFACE = eth0
 
 # vpn
-define VPN_UDP_IFACE = nightops
+define VPN_UDP_IFACE = ops
 define VPN_UDP_NET = 10.0.69.0/24
 define VPN_UDP_PORT = 6969
 
-define VPN_TCP_IFACE = nightops-tcp
+define VPN_TCP_IFACE = opsraw
 define VPN_TCP_NET = 10.0.70.0/24
 define VPN_TCP_PORT = 6970
 
