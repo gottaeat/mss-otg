@@ -28,3 +28,5 @@ StrictModes                yes
 SyslogFacility             AUTH
 X11Forwarding              no
 GatewayPorts               yes
+
+Subsystem sftp /usr/lib/ssh/sftp-server
