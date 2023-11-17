@@ -97,12 +97,14 @@ tmux
 tor
 ttf-croscore
 ttf-sazanami
+udp2raw
 unrar
 unzip
 v4l-utils
 vifm
 vim
 vnstat
+wavemon
 wget
 whois
 wireguard-tools
