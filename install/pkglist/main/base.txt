@@ -25,6 +25,7 @@ gpm
 hashcat
 htop
 imagemagick
+iperf3
 iptables-nft
 irssi
 iw
