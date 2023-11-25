@@ -46,7 +46,7 @@ mount /dev/arch/stuff /stuff
 pacman -Sy pacman-contrib
 
 curl -s "https://archlinux.org/mirrorlist/\
-?ip_version=4&protocol=https&use_mirror_status=on&country=RO&country=DE" \
+?ip_version=4&protocol=https&use_mirror_status=on&country=FR&country=DE" \
  | sed -e 's/^#Server/Server/' -e '/^#/d' | rankmirrors - \
  > /etc/pacman.d/mirrorlist 
 
