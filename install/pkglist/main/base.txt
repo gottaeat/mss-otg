@@ -1,8 +1,6 @@
-aarch64-linux-gnu-gcc
 aircrack-ng
 alsa-utils
 android-tools
-arm-none-eabi-gcc
 base
 base-devel
 bc

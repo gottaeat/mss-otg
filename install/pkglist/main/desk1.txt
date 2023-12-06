@@ -1,5 +1,7 @@
+aarch64-linux-gnu-gcc
 acpid
 amd-ucode
+arm-none-eabi-gcc
 cmake
 dmidecode
 dnsmasq
