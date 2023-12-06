@@ -1,6 +1,8 @@
+aarch64-linux-gnu-gcc
 aircrack-ng
 alsa-utils
 android-tools
+arm-none-eabi-gcc
 base
 base-devel
 bc
@@ -23,8 +25,11 @@ gnu-netcat
 go
 gpm
 hashcat
+hashcat-utils
+hcxtools
 htop
 imagemagick
+inetutils
 iperf3
 iptables-nft
 irssi

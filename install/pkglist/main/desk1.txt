@@ -20,6 +20,7 @@ libvorbis
 mangohud
 mesa-vdpau
 minetest
+obs-studio
 openal
 openmw
 qemu-desktop
