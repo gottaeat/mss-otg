@@ -44,6 +44,7 @@ table ip myfilter {
         ct state established,related counter accept
         iifname $NETNS_IF oifname $VPN_IF tcp flags & (syn|rst) == syn tcp option maxseg size set 1360 counter
         iifname $NETNS_IF counter accept
+        oifname $VPN_IF tcp flags syn / syn,rst tcp option maxseg size set rt mtu counter
         iifname $VPN_IF counter accept
         iifname $WAN_IFACE oifname $NETNS_IF counter accept
     }
