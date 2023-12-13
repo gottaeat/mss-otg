@@ -138,16 +138,9 @@ EOF
 
 cat /etc/fstab | column -t > /tmp/fstab; mv /tmp/fstab /etc/fstab
 
-cat << EOF > /etc/ssh/banner
-╔──────────────────────────────╗
-│atgatgatgatgatgatgatgatgatgatg│
-│tgatgatgatgatgatgatgatgatgatga│
-│gatgatgatgatgatgatgatgatgatgat│
-│atgatgatgatgatgatgatgatgatgatg│
-│tgatgatgatgatgatgatgatgatgatga│
-│gatgatgatgatgatgatgatgatgatgat│
-╚──────────────────────────────╝
-EOF
+cp -vfr \
+    /mnt/mss/stuff/techy-bits/banners/gat \
+    /etc/ssh/banner
 
 cp -vfr "${fdir}"/etc/X11/Xwrapper.config     /etc/X11/
 cp -vfr "${fdir}"/etc/modprobe.d/*            /etc/modprobe.d/
