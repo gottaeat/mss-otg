@@ -59,6 +59,7 @@ mumble
 mupdf
 ncmpcpp
 neofetch
+netperf
 networkmanager
 nginx
 nmap
