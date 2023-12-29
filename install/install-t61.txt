@@ -280,6 +280,7 @@ systemctl mask iptables
 
 systemctl enable NetworkManager
 systemctl enable gpm
+systemctl enable linux-modules-cleanup
 systemctl enable mpd.service
 #systemctl enable mss-nfqws
 systemctl enable named
