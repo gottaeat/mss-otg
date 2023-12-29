@@ -188,8 +188,11 @@ sed -i -e 's|kernel.sysrq = 16|kernel.sysrq = 1|g' \
 
 ln -sfv /usr/share/zoneinfo/Europe/Istanbul /etc/localtime
 
-# 2.2.4 > alternative loopback address and dns via networkmanager
-cp -vfr "${fdir}"/etc/NetworkManager/conf.d/dns.conf \
+# 2.2.4 > alternative loopback address and dns via networkmanager, also disable
+#         mac randomization for wifi by default
+cp -vfr \
+ "${fdir}"/etc/NetworkManager/conf.d/dns.conf      \
+ "${fdir}"/etc/NetworkManager/conf.d/rand_mac.conf \
  /etc/NetworkManager/conf.d/
 
 for i in /etc/NetworkManager/system-connections/lo.nmconnection; do
