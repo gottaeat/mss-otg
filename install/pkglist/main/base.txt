@@ -33,6 +33,7 @@ iptables-nft
 irssi
 iw
 jq
+kernel-modules-hook
 libcap
 libinput
 libmnl
