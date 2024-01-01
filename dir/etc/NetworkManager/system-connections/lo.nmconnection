@@ -13,6 +13,6 @@ method=manual
 
 [ipv6]
 addr-gen-mode=default
-method=auto
+method=disabled
 
 [proxy]
