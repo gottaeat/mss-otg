@@ -109,7 +109,7 @@ fdir="${repodir}/dir"
 
 rm -rfv /etc/resolv.conf
 
-echo "nameserver 172.16.0.1" > /etc/resolv.conf
+echo "nameserver 10.13.37.1" > /etc/resolv.conf
 echo "solitude"              > /etc/hostname
 
 cat << EOF > /etc/hosts
@@ -294,7 +294,7 @@ systemctl enable sshd
 systemctl enable tor
 systemctl enable vnstat
 
-systemctl enable wg-quick@lichen
+#systemctl enable wg-quick@lichen
 systemctl enable qbittorrent-nox@mss.service
 
 cat << EOF > /etc/resolv.conf
