@@ -1,3 +1,0 @@
-acpid
-grub
-intel-ucode
