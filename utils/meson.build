@@ -1,5 +1,5 @@
 project('utils',
-        version: '100',
+        version: '101',
         license: 'GPL3',
         default_options: [
             'buildtype=plain',
@@ -26,7 +26,7 @@ files_bin = [
     'bin/ossl',
     'bin/pkgup',
     'bin/setbright',
-    'bin/setfirewall.py',
+    'bin/setcake.py',
     'bin/setgov',
     'bin/setmon',
     'bin/setxkeeb',
