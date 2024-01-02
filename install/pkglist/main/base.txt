@@ -28,7 +28,6 @@ hcxtools
 htop
 imagemagick
 inetutils
-iperf3
 iptables-nft
 irssi
 iw
@@ -82,13 +81,9 @@ proxychains-ng
 pulseaudio
 pulseaudio-alsa
 python
-python-beautifulsoup4
 python-black
-python-passlib
 python-pip
 python-pylint
-python-requests
-python-yaml
 qbittorrent-nox
 reaver
 redshift
