@@ -148,20 +148,14 @@ class SetCAKE:
     def _start(self):
         self._info()
 
-        # operstate
-        iface_path = f"/sys/class/net/{self.iface}/operstate"
+        # just check if the sysfs dir for the iface exists, going off of
+        # operstate gets shoddy, python has no proper api except for external
+        # modules to parse the /flags and i don't have the mental capacity or
+        # the care in the world to do the bitwise shit
+        iface_path = f"/sys/class/net/{self.iface}/"
 
-        if not os.path.isfile(iface_path):
-            self.logger.error("could not determine operstate for %s.", self.iface)
-
-        try:
-            with open(iface_path, "r", encoding="utf-8") as file:
-                iface_state = file.read().strip("\n")
-        except:
-            self.logger.exception("could not determine operstate for %s.", self.iface)
-
-        if iface_state != "up":
-            self.logger.error("%s is not up.", self.iface)
+        if not os.path.isdir(iface_path):
+            self.logger.error("interface %s does not exist.", self.iface)
 
         # set known state
         self._stop()
