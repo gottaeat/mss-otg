@@ -36,8 +36,7 @@
             <target dev="vda" bus="virtio"/>
         </disk>
         <interface type='network'>
-            <mac address='00:ab:ad:1d:ec:00'/>
-            <source network='gat-lan'/>
+            <source network='gat'/>
             <model type='virtio'/>
         </interface>
         <channel type='spicevmc'>
