@@ -171,21 +171,18 @@ cp -vfr "${fdir}"/etc/systemd/logind.conf /etc/systemd/
 cp -vfr "${fdir}"/etc/systemd/system/*    /etc/systemd/system/
 cp -vfr "${fdir}"/etc/vconsole.conf       /etc/
 
+# 5.9.1 > systemd-networkd
+cp -vfr \
+    "${fdir}"/etc/systemd/network/lo.network \
+    /etc/systemd/network
+
+systemctl enable systemd-networkd
+
 # 5.10 > networkmanager
 cp -vfr \
     "${fdir}"/etc/NetworkManager/conf.d/dns.conf      \
     "${fdir}"/etc/NetworkManager/conf.d/rand_mac.conf \
     /etc/NetworkManager/conf.d/
-
-for i in /etc/NetworkManager/system-connections/lo.nmconnection; do
-    sed \
-        -e "s|REPLACEMELOUUID|$(python -c 'from uuid import uuid4; print(uuid4())')|" \
-        "${fdir}"/etc/NetworkManager/system-connections/lo.nmconnection \
-    > "${i}"
-
-    chown root:root "${i}"
-    chmod 0600 "${i}"
-done
 
 systemctl enable NetworkManager
 
