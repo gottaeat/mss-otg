@@ -266,7 +266,11 @@ systemctl enable mpd.service
 cp -vfr "${fdir}"/etc/X11/Xwrapper.config                    /etc/X11/
 cp -vfr "${fdir}"/etc/X11/xorg.conf.d/01-intel-thinkpad.conf /etc/X11/xorg.conf.d/
 
-# 5.18 > misc services
+# 5.18 > acpid
+cp -vfr "${fdir}"/etc/acpi/handler.sh /etc/acpi/
+systemctl enable acpid
+
+# 5.19 > misc services
 cp -vfr \ 
     "${fdir}"/etc/ntp.conf         \
     "${fdir}"/etc/proxychains.conf \
