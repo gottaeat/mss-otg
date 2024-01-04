@@ -6,49 +6,48 @@ mkfs.fat -F 32 /dev/sda1 -n EFI -v
 
 # 1.2 > luks
 cryptsetup \
- --type      luks2           \
- --cipher    aes-xts-plain64 \
- --hash      sha512          \
- --iter-time 2000            \
- --key-size  512             \
- --pbkdf     argon2id        \
+    --type luks2             \
+    --cipher aes-xts-plain64 \
+    --hash sha512            \
+    --iter-time 2000         \
+    --key-size 512           \
+    --pbkdf argon2id         \
+    --use-urandom            \
+    --verify-passphrase      \
 \
- --use-urandom               \
- --verify-passphrase         \
-\
- luksFormat /dev/sda2
+    luksFormat /dev/sda2
 
 cryptsetup \
- --allow-discards \
- --persistent     \
- luksOpen /dev/sda2 arch
+    --allow-discards \
+    --persistent     \
+\
+    luksOpen /dev/sda2 arch
 
 # 1.3 > lvm
 pvcreate /dev/mapper/arch
 vgcreate arch /dev/mapper/arch
-lvcreate --size 10G   arch --name rootfs
+
+lvcreate --size 10G arch --name rootfs
 lvcreate -l +100%FREE arch --name stuff
 
 mkfs.ext4 /dev/arch/rootfs -L arch-rootfs
 mkfs.ext4 /dev/arch/stuff  -L arch-stuff
 
 # 1.4 > mounts
+mkdir -pv /mnt/boot /stuff
+
 mount /dev/arch/rootfs /mnt
-
-mkdir /mnt/boot
 mount /dev/sda1 /mnt/boot
-
-mkdir /stuff
 mount /dev/arch/stuff /stuff
 
-# 2 > action
-# 2.1 > lay base
+# 2 > bootstrap
 pacman -Sy pacman-contrib
 
-curl -s "https://archlinux.org/mirrorlist/\
-?ip_version=4&protocol=https&use_mirror_status=on&country=FR&country=DE" \
- | sed -e 's/^#Server/Server/' -e '/^#/d' | rankmirrors - \
- > /etc/pacman.d/mirrorlist
+curl -s \
+"https://archlinux.org/mirrorlist/?ip_version=4&protocol=https&use_mirror_status=on\
+&country=FR&country=DE" \
+    | sed -e 's/^#Server/Server/' -e '/^#/d' \
+    | rankmirrors - > /etc/pacman.d/mirrorlist 
 
 cat << EOF >> /etc/pacman.conf
 [multilib]
@@ -57,161 +56,167 @@ EOF
 
 pacman -Sy
 
-pacstrap -K /mnt \
- `cat /stuff/techy-bits/git/mss-otg/install/pkglist/main/{base,x230}.txt`
+pacstrap \
+    -K /mnt \
+    `cat /stuff/techy-bits/git/mss-otg/install/pkglist/main/{base,x230}.txt`
 
-cp -vfr /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/mirrorlist
+cp -vfr \
+    /etc/pacman.d/mirrorlist \
+    /mnt/etc/pacman.d/mirrorlist
 
+# 3 > otg
 arch-chroot /mnt
 
-# 2.2 > chroot
-# 2.2.1 > set repo
-mkdir -pv \
- /mnt/mss/{archive,externalstuff,iso,usb,stuff}
+mkdir -pv /mnt/mss/{archive,externalstuff,iso,usb,stuff}
 
 mount /dev/arch/stuff /mnt/mss/stuff
 
 repodir="/mnt/mss/stuff/techy-bits/git/mss-otg"
 cd "${repodir}"/utils
 
-mkdir build
-cd    build
+mkdir build/
+cd build/
 
-meson setup ..; samu; samu install
+meson setup ../; samu; samu install
 
 ln -sfv /mnt/mss/stuff/techy-bits/git/mss-otg /mss/repo
-ln -sfv /mnt/mss/stuff/techy-bits/work        /mss/work
+ln -sfv /mnt/mss/stuff/techy-bits/work /mss/work
 
 chown -Rh root:root /mss
 
 ln -sfv /mss/share/bash-handler /etc/profile
 ln -sfv /mss/share/bash-handler /etc/bash.bashrc
 
-cd ../; rm -rf build
+cd ../; rm -rf build/
 
 exit
 
-# 2.2.2 > landfill
+# 4 > landfill
 arch-chroot /mnt
 
 repodir="/mnt/mss/stuff/techy-bits/git/mss-otg"
 cd "${repodir}"/landfill
 
-mkdir build
-cd    build
+mkdir build/
+cd build/
 
-meson setup ..; samu; sudo samu install
+meson setup ../; samu; samu install
 
 cd ../; rm -rf build/; cd
 
-# 2.2.3 > configure /etc
+# 5 > base /etc
 fdir="${repodir}/dir"
 
+# 5.1 > fstab
+cp -vfr "${fdir}"/etc/fstab /etc
+
+echo "/dev/sda1 /boot vfat defaults 0 0" >> /etc/fstab
+
+# 5.2 > resolv
+if mountpoint /etc/resolv.conf >/dev/null 2>&1; then umount /etc/resolv.conf; fi
 rm -rfv /etc/resolv.conf
 
 echo "nameserver 10.13.37.1" > /etc/resolv.conf
-echo "solitude"              > /etc/hostname
+
+# 5.3 > locale + tz
+cp -vfr \
+    "${fdir}"/etc/locale.conf \
+    "${fdir}"/etc/locale.gen  \
+    /etc/
+
+locale-gen
+
+ln -sfv /usr/share/zoneinfo/Europe/Istanbul /etc/localtime
+
+# 5.4 > host
+echo "solitude" > /etc/hostname
 
 cat << EOF > /etc/hosts
 127.0.0.1 localhost
 127.0.1.1 solitude solitude
 EOF
 
-cp -vf \
- "${fdir}"/etc/fstab            \
- "${fdir}"/etc/locale.conf      \
- "${fdir}"/etc/locale.gen       \
- "${fdir}"/etc/makepkg.conf     \
- "${fdir}"/etc/mkinitcpio.conf  \
- "${fdir}"/etc/mpd.conf         \
- "${fdir}"/etc/named.conf       \
- "${fdir}"/etc/ntp.conf         \
- "${fdir}"/etc/pacman.conf      \
- "${fdir}"/etc/proxychains.conf \
- "${fdir}"/etc/vconsole.conf    \
- "${fdir}"/etc/vimrc            \
- /etc/
+# 5.5 > vim
+cp -rfv "${fdir}"/etc/vimrc /etc
 
-cat << EOF >> /etc/fstab
-/dev/sda1 /boot vfat defaults 0 0
-EOF
+ln -sfv /usr/bin/vim /usr/bin/vi
+mkdir -pv ~/.config/vim/{backups,swaps}
 
-cat /etc/fstab | column -t > /tmp/fstab; mv /tmp/fstab /etc/fstab
+# 5.6 > sudo
+cp -vfr "${fdir}"/etc/sudoers.d/*  /etc/sudoers.d/
 
+# 5.7 > udev + util-linux
+cp -vfr "${fdir}"/etc/modprobe.d/*   /etc/modprobe.d/
+cp -vfr "${fdir}"/etc/sysctl.d/*     /etc/sysctl.d/
+cp -vfr "${fdir}"/etc/udev/rules.d/* /etc/udev/rules.d/
+
+sed -i -e \
+    's|kernel.sysrq = 16|kernel.sysrq = 1|g' \
+    /usr/lib/sysctl.d/50-default.conf
+
+# 5.8 > arch
 cp -vfr \
-    /mnt/mss/stuff/techy-bits/banners/solitude \
-    /etc/ssh/banner
+    "${fdir}"/etc/pacman.conf     \
+    "${fdir}"/etc/makepkg.conf    \
+    "${fdir}"/etc/mkinitcpio.conf \
+    /etc
 
-cp -vfr "${fdir}"/etc/X11/Xwrapper.config     /etc/X11/
-cp -vfr "${fdir}"/etc/acpi/handler.sh         /etc/acpi/
-cp -vfr "${fdir}"/etc/modprobe.d/*            /etc/modprobe.d/
-cp -vfr "${fdir}"/etc/pulse/*                 /etc/pulse/
-cp -vfr "${fdir}"/etc/ssh/sshd_config         /etc/ssh/
-cp -vfr "${fdir}"/etc/sudoers.d/*             /etc/sudoers.d/
-cp -vfr "${fdir}"/etc/sysctl.d/*              /etc/sysctl.d/
-cp -vfr "${fdir}"/etc/systemd/logind.conf     /etc/systemd/
-cp -vfr "${fdir}"/etc/systemd/system/*        /etc/systemd/system/
-cp -vfr "${fdir}"/etc/udev/rules.d/*          /etc/udev/rules.d/
-cp -vfr "${fdir}"/usr/share/dbus-1/system.d/* /usr/share/dbus-1/system.d/
+pacman-key --init
+pacman-key --populate archlinux
 
-cp -vfr "${fdir}"/etc/X11/xorg.conf.d/01-intel-thinkpad.conf \
- /etc/X11/xorg.conf.d/
+# 5.9 > systemd
+cp -vfr "${fdir}"/etc/systemd/logind.conf /etc/systemd/
+cp -vfr "${fdir}"/etc/systemd/system/*    /etc/systemd/system/
+cp -vfr "${fdir}"/etc/vconsole.conf       /etc/
 
-ln -sfv /mnt/mss/stuff/techy-bits/vpn/lichen/client/solitude-lichen.conf \
- /etc/wireguard/lichen.conf
-
-ln -sfv /mnt/mss/stuff/techy-bits/vpn/lichen/client/solitude-lichenraw.conf \
- /etc/wireguard/lichenraw.conf
-
-groupadd -r pulse
-groupadd -r pulse-access
-useradd -r -g pulse -G audio -d /var/run/pulse -m pulse
-rm -rfv /var/run/pulse/.bash*
-
-for i in /etc/pulse/*.pa; do
- awk -i inplace \
-  '{gsub(/load-module module-native-protocol-unix/,\
-         "load-module module-native-protocol-unix\
- auth-anonymous=1 socket=/var/run/pulse/native");\
-          print}' \
-          "${i}"
-done
-
-sed -i -e '/module-suspend-on-idle/d' \
- /etc/pulse/default.pa \
- /etc/pulse/system.pa
-
-systemctl --global disable pulseaudio.service pulseaudio.socket
-
-sed -i -e 's|kernel.sysrq = 16|kernel.sysrq = 1|g' \
- /usr/lib/sysctl.d/50-default.conf
-
-ln -sfv /usr/share/zoneinfo/Europe/Istanbul /etc/localtime
-
-# 2.2.4 > alternative loopback address and dns via networkmanager, also disable
-#         mac randomization for wifi by default
+# 5.10 > networkmanager
 cp -vfr \
- "${fdir}"/etc/NetworkManager/conf.d/dns.conf      \
- "${fdir}"/etc/NetworkManager/conf.d/rand_mac.conf \
- /etc/NetworkManager/conf.d/
+    "${fdir}"/etc/NetworkManager/conf.d/dns.conf      \
+    "${fdir}"/etc/NetworkManager/conf.d/rand_mac.conf \
+    /etc/NetworkManager/conf.d/
 
 for i in /etc/NetworkManager/system-connections/lo.nmconnection; do
- sed \
-  -e "s|REPLACEMELOUUID|$(python -c 'from uuid import uuid4; print(uuid4())')|" \
-  "${fdir}"/etc/NetworkManager/system-connections/lo.nmconnection \
-   > "${i}"
+    sed \
+        -e "s|REPLACEMELOUUID|$(python -c 'from uuid import uuid4; print(uuid4())')|" \
+        "${fdir}"/etc/NetworkManager/system-connections/lo.nmconnection \
+    > "${i}"
 
- chown root:root "${i}"
- chmod 0600      "${i}"
+    chown root:root "${i}"
+    chmod 0600 "${i}"
 done
 
-# 2.2.5 > configure bind
+systemctl enable NetworkManager
+
+# 5.11 > nftables
+cp -vfr "${repodir}"/nftables/x230.nft /etc/nftables.conf
+
+systemctl mask iptables
+systemctl enable nftables
+
+# 5.12 > wireguard
+ln -sfv \
+    /mnt/mss/stuff/techy-bits/vpn/lichen/client/solitude-lichen.conf \
+    /etc/wireguard/lichen.conf
+
+ln -sfv \
+    /mnt/mss/stuff/techy-bits/vpn/lichen/client/solitude-lichenraw.conf \
+    /etc/wireguard/lichenraw.conf
+
+# 5.13 > sshd
+cp -vfr "${fdir}"/etc/ssh/sshd_config /etc/ssh/
+cp -vfr /mnt/mss/stuff/techy-bits/banners/solitude /etc/ssh/banner
+
+systemctl enable sshd
+
+# 5.14 > named
 rm -rf /var/named
-cp -vfr "${fdir}"/var/named/ /var/
+
+cp -vfr "${fdir}"/etc/named.conf /etc
+cp -vfr "${fdir}"/var/named/ /var
 
 for i in /etc/named.conf /var/named; do
- chown -Rh named:named "${i}"
- chmod 0700 "${i}"
+    chown -Rh named:named "${i}"
+    chmod 0700 "${i}"
 done
 
 rndc_conf="$(rndc-confgen)"
@@ -226,17 +231,69 @@ printf "\n%s\n%s\n" \
 
 unset rndc_conf
 
-# 2.2.6 > vim
-ln -sfv /usr/bin/vim /usr/bin/vi
-mkdir -pv ~/.config/vim/{backups,swaps}
+systemctl enable named
 
-# 2.2.7 > arch init
-locale-gen
+# 5.15 > pulseaudio
+cp -vfr "${fdir}"/usr/share/dbus-1/system.d/* /usr/share/dbus-1/system.d/
+cp -vfr "${fdir}"/etc/pulse/*                 /etc/pulse/
 
-pacman-key --init
-pacman-key --populate archlinux
+groupadd -r pulse
+groupadd -r pulse-access
+useradd -r -g pulse -G audio -d /var/run/pulse -m pulse
+rm -rfv /var/run/pulse/.bash*
 
-# 2.2.8 > users
+for i in /etc/pulse/*.pa; do
+    awk -i inplace '{gsub(/load-module module-native-protocol-unix/,\
+"load-module module-native-protocol-unix \
+auth-anonymous=1 socket=/var/run/pulse/native");\
+    print}' "${i}"
+done
+
+sed -i -e \
+    '/module-suspend-on-idle/d' \
+    /etc/pulse/default.pa       \
+    /etc/pulse/system.pa
+
+systemctl --global disable pulseaudio.service pulseaudio.socket
+systemctl enable pulseaudio
+
+# 5.16 > mpd
+cp -vfr "${fdir}"/etc/mpd.conf /etc
+systemctl mask mpd.socket
+systemctl enable mpd.service
+
+# 5.17 > x11
+cp -vfr "${fdir}"/etc/X11/Xwrapper.config                    /etc/X11/
+cp -vfr "${fdir}"/etc/X11/xorg.conf.d/01-intel-thinkpad.conf /etc/X11/xorg.conf.d/
+
+# 5.18 > misc services
+cp -vfr \ 
+    "${fdir}"/etc/ntp.conf         \
+    "${fdir}"/etc/proxychains.conf \
+    /etc
+
+systemctl enable gpm
+systemctl enable libvirtdns.service libvirtd.service virtlogd.service
+systemctl enable linux-modules-cleanup
+systemctl enable ntpd
+systemctl enable qbittorrent-nox@mss.service
+systemctl enable tor
+systemctl enable vnstat
+
+# 6 > nfqws
+cd /mnt/mss/stuff/techy-bits/git/mss-nfqws/
+
+mkdir build
+cd    build
+
+meson setup -Dopenwrt=false ../
+
+samu
+samu install
+
+cd ../; rm -rf build/; cd
+
+# 7 > users
 groupadd -g 1001 mss
 
 useradd \
@@ -246,8 +303,8 @@ useradd \
  -g 1001      \
  -u 1001      \
  -G adbusers,adm,audio,disk,floppy,ftp,games,http,input,kmem,kvm,log,lp,mail,\
-optical,proc,pulse-access,rfkill,scanner,smmsp,storage,sys,systemd-journal,tty,\
-users,utmp,uucp,video,wheel,wireshark \
+mss,optical,proc,pulse-access,rfkill,scanner,smmsp,storage,sys,systemd-journal,\
+tty,users,utmp,uucp,video,wheel,wireshark \
  mss
 
 passwd
@@ -261,54 +318,19 @@ mount /home/mss
 
 visudo
 
-# 2.2.9 > nftables
-cp -vfr "${repodir}"/nftables/x230.nft /etc/nftables.conf
-
-# 2.2.9.1 > nfqws
-cd /mnt/mss/stuff/techy-bits/git/mss-nfqws/
-
-mkdir build
-cd    build
-
-meson setup -Dopenwrt=false ../
-
-samu
-samu install
-
-cd ../; rm -rf build/; cd
-
-# 2.2.10 > services
-systemctl mask mpd.socket
-systemctl mask iptables
-
-systemctl enable NetworkManager
-systemctl enable gpm
-systemctl enable linux-modules-cleanup
-systemctl enable mpd.service
-#systemctl enable mss-nfqws
-systemctl enable named
-systemctl enable nftables
-systemctl enable ntpd
-systemctl enable pulseaudio
-systemctl enable sshd
-systemctl enable tor
-systemctl enable vnstat
-
-#systemctl enable wg-quick@lichen
-systemctl enable qbittorrent-nox@mss.service
-
+# 8 > switch to local bind
 cat << EOF > /etc/resolv.conf
-search crib
+search crib lichen lichenraw
 nameserver 10.0.99.0
 EOF
 
-# 2.2.11 > bootloader
+# 9 > bootloader
 mkinitcpio -P
 
 swapuuid="$(blkid `mount | awk '/\/mnt\/mss\/stuff/{print $1}'` \
-            | awk '{gsub(/"/,""); print $3}')"
+    | awk '{gsub(/"/,""); print $3}')"
 swapoffs="$(filefrag -v "/mnt/mss/stuff/techy-bits/swapfile" \
-            | awk '$1=="0:" {print substr($4, 1, length($4)-2)}')"
+    | awk '$1=="0:" {print substr($4, 1, length($4)-2)}')"
 
 cmdline="initrd=\intel-ucode.img initrd=\initramfs-linux-zen.img"
 cmdline="${cmdline} cryptdevice=/dev/sda2:cryptlvm root=/dev/arch/rootfs"
@@ -324,42 +346,40 @@ cmdline="${cmdline} resume=${swapuuid} resume_offset=${swapoffs}"
 cmdline="$(echo ${cmdline} | sed 's|\\!|!|g')"
 
 efibootmgr \
- -c                      \
- -d "/dev/sda" -p 1      \
- -L "arch"               \
- -l "\vmlinuz-linux-zen" \
- -u "${cmdline}"
+    -c                      \
+    -d "/dev/sda" -p 1      \
+    -L "arch"               \
+    -l "\vmlinuz-linux-zen" \
+    -u "${cmdline}"
 
 exit
 reboot
 
-# 3 > user
-# 3.1 > yay
+# 10 > user
+# 10.1 > yay
 gcd1 https://aur.archlinux.org/yay.git
-cd  yay/
+cd yay/
 
 makepkg -sri
 
 cd ../; rm -rf yay/
 
-yay -Syu --noconfirm \
- `cat /mss/repo/install/pkglist/user/{base,x230}.txt`
+yay -Syu --noconfirm `cat /mss/repo/install/pkglist/user/{base,x230}.txt`
 
-# 3.2 > thinkfan
+# 10.2 > thinkfan
 sudo -i
 tempfiles="$(/bin/ls -w1 /sys/class/hwmon/hwmon*/temp*_label)"
 fintemp="$(grep -l Package    ${tempfiles} \
-           || grep -l Core\ 0 ${tempfiles} \
-           || grep -l Tctl    ${tempfiles} )"
-
+    || grep -l Core\ 0 ${tempfiles} \
+    || grep -l Tctl    ${tempfiles} )"
 hwmonfile="$(echo "${fintemp}" | sed 's/label/input/g')"
 
 sed -e "s|REPLACEMEHWMON|${hwmonfile}|g" \
- /mss/repo/dir/etc/thinkfan.conf > /etc/thinkfan.conf
+    /mss/repo/dir/etc/thinkfan.conf > /etc/thinkfan.conf
 
 systemctl enable thinkfan
 
-# 3.3 > cleanup
+# 10.3 > cleanup
 pacman -Qtdq | pacman -Rns - --noconfirm
 pacman -Scc --noconfirm
 
