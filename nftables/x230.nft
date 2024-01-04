@@ -31,7 +31,6 @@ table ip solitude {
         type filter hook forward priority filter; policy drop;
         ct state established,related counter accept
         iifname $VPN_IF counter accept
-        iifname $WAN_IFACE oifname $NETNS_IF counter accept
     }
 
     # FILTER<-FORWARD (mangle)
