@@ -1,7 +1,7 @@
 #!/usr/bin/nft -f
 flush ruleset
 
-# wan
+# physical
 define WAN_IFACE = { eth0, wlan0 }
 
 # vpn
@@ -17,46 +17,45 @@ define LIBVIRTD_NS_IFACE_IP = 10.0.101.1
 
 # allow ports
 define TCP_ALLOW = { 80,443,1337,1338,3131,6666,8000,9091 }
-#define UDP_ALLOW = { }
 
 # groups
 define NETNS_IF = { $DOCKER_IFACE, $LIBVIRTD_IFACE }
 define VPN_IF = { $VPN_UDP_IFACE, $VPN_TCP_IFACE } 
 
-table ip myfilter {
+# table
+table ip gat {
     # FILTER<-INPUT
     chain input {
         type filter hook input priority filter; policy drop;
-        ct state established,related counter accept
         iifname "lo" counter accept
+        ct state established,related counter accept
         iifname $NETNS_IF counter accept
         iifname $VPN_IF counter accept
         iifname $WAN_IFACE tcp dport $TCP_ALLOW counter accept
-#       iifname $WAN_IFACE udp dport $UDP_ALLOW counter accept
-        iifname $WAN_IFACE udp dport 33434-33524 limit rate 500/second counter accept
-        iifname $WAN_IFACE icmp type { echo-reply, echo-request } limit rate 2000/second counter accept
-        iifname $WAN_IFACE ip protocol icmp counter accept
+        iifname $WAN_IFACE icmp type echo-request counter accept
     }
 
     # FILTER<-FORWARD
-    chain forward {
+    chain filter_forward {
         type filter hook forward priority filter; policy drop;
         ct state established,related counter accept
-        iifname $NETNS_IF oifname $VPN_IF tcp flags & (syn|rst) == syn tcp option maxseg size set 1360 counter
         iifname $NETNS_IF counter accept
-        oifname $VPN_IF tcp flags syn / syn,rst tcp option maxseg size set rt mtu counter
         iifname $VPN_IF counter accept
         iifname $WAN_IFACE oifname $NETNS_IF counter accept
+    }
+
+    # FILTER<-FORWARD (mangle)
+    chain mangle_forward {
+        type filter hook forward priority mangle; policy accept;
+        iifname { $WAN_IFACE, $VPN_IF } tcp flags syn tcp option maxseg size set rt mtu counter
+        oifname { $WAN_IFACE, $VPN_IF } tcp flags syn tcp option maxseg size set rt mtu counter
     }
 
     # FILTER<-OUTPUT
     chain output {
         type filter hook output priority filter; policy accept;
     }
-}
 
-# NAT
-table ip mynat {
     # NAT<-POSTROUTING
     chain postrouting {
         type nat hook postrouting priority srcnat; policy accept;
@@ -66,7 +65,5 @@ table ip mynat {
     # NAT<-PREROUTING
     chain prerouting {
         type nat hook prerouting priority dstnat; policy accept;
-#       fib daddr type local tcp dport 80 counter redirect to :1337
-#       fib daddr type local tcp dport 443 counter redirect to :1338
     }
 }
