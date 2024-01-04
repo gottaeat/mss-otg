@@ -34,10 +34,12 @@ mkfs.ext4 /dev/arch/rootfs -L arch-rootfs
 mkfs.ext4 /dev/arch/stuff  -L arch-stuff
 
 # 1.4 > mounts
-mkdir -pv /mnt/boot /stuff
-
 mount /dev/arch/rootfs /mnt
+
+mkdir /mnt/boot
 mount /dev/sda1 /mnt/boot
+
+mkdir /stuff
 mount /dev/arch/stuff /stuff
 
 # 2 > bootstrap
