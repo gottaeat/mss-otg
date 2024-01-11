@@ -1,4 +1,5 @@
 dynamips
 gns3-gui
 gns3-server
+pcsx2
 ubridge
