@@ -19,6 +19,7 @@ libjpeg-turbo
 libva-mesa-driver
 libvirt
 libvorbis
+linux-zen-headers
 mangohud
 mesa-vdpau
 minetest
