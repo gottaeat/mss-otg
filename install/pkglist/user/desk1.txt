@@ -3,3 +3,4 @@ gns3-gui
 gns3-server
 pcsx2
 ubridge
+xone-dkms-git
