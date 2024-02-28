@@ -6,6 +6,7 @@ cmake
 dmidecode
 dnsmasq
 docker
+docker-buildx
 docker-compose
 efibootmgr
 glfw-x11
