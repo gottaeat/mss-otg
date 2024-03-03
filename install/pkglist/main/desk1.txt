@@ -9,7 +9,7 @@ docker
 docker-buildx
 docker-compose
 efibootmgr
-glfw-x11
+glfw
 jdk-openjdk
 lib32-libpulse
 lib32-mangohud
