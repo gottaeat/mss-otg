@@ -11,7 +11,6 @@ clinfo
 diffutils
 dosfstools
 dsniff
-element-desktop
 fdupes
 feh
 ffmpeg
