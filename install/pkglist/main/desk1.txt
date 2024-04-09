@@ -1,7 +1,9 @@
 aarch64-linux-gnu-gcc
 acpid
 amd-ucode
+ansible
 arm-none-eabi-gcc
+cdrtools
 cmake
 dmidecode
 dnsmasq
@@ -30,6 +32,7 @@ openmw
 qemu-desktop
 radeontop
 rocm-opencl-runtime
+sshpass
 steam
 virt-manager
 vulkan-icd-loader
