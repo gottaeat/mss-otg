@@ -90,6 +90,7 @@ rsync
 samurai
 signal-desktop
 smartmontools
+sshfs
 strace
 tcpdump
 terminus-font
