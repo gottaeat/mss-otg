@@ -49,6 +49,7 @@ lsof
 lvm2
 maim
 man-db
+masscan
 meson
 mpc
 mpd

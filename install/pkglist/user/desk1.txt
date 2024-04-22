@@ -1,6 +1,6 @@
 dynamips
 gns3-gui
 gns3-server
-pcsx2
+obs-studio-liberty
 ubridge
 xone-dkms-git
