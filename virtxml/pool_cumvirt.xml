@@ -1,6 +1,0 @@
-<pool type="dir">
-    <name>cumvirt</name>
-     <target>
-         <path>/mnt/mss/stuff/techy-bits/pools/cumvirt</path>
-     </target>
-</pool>

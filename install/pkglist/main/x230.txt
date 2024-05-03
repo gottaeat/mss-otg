@@ -1,4 +1,0 @@
-acpid
-efibootmgr
-intel-ucode
-libva-intel-driver
