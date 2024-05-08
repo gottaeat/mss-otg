@@ -286,18 +286,21 @@ def get_battery():
     if not os.path.exists(f"{bat0_path}/status"):
         return "nb"
 
-    with open(f"{bat0_path}/capacity", "r", encoding="utf-8") as f:
-        bat_cap = "%" + re.sub(r"\n", "", f.read())
+    try:
+        with open(f"{bat0_path}/capacity", "r", encoding="utf-8") as f:
+            bat_cap = "%" + re.sub(r"\n", "", f.read())
 
-    with open(f"{bat0_path}/status", "r", encoding="utf-8") as f:
-        bat_stat = f.readline().strip("\n")
+        with open(f"{bat0_path}/status", "r", encoding="utf-8") as f:
+            bat_stat = f.readline().strip("\n")
 
-    if bat_stat == "Discharging":
-        bat_stat = "d"
-    elif bat_stat == "Not charging":
-        bat_stat = "n"
-    else:
-        bat_stat = "c"
+        if bat_stat == "Discharging":
+            bat_stat = "d"
+        elif bat_stat == "Not charging":
+            bat_stat = "n"
+        else:
+            bat_stat = "c"
+    except FileNotFoundError:
+        return "nb"
 
     return f"{bat_stat}{bat_cap}"
 
