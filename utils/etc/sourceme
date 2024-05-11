@@ -1,57 +1,97 @@
-# 1 > vars
-# 1.1 > path
-export PATH="${PATH}:/mnt/mss/stuff/techy-bits/bin"
+# vim: set ft=sh:
 
-# 1.2 > essential
-export    LANG="en_US.UTF-8"
-export   PAGER="less"
-export  EDITOR="vim"
+# - - essential - - #
+export PATH="${PATH}:/mnt/mss/stuff/techy-bits/bin"
+export LANG="en_US.UTF-8"
+export PAGER="less"
+export EDITOR="vim"
 export GPG_TTY="$(tty)"
 
-# 1.3 > misc
-export            MPD_HOST="127.0.0.1"
-export     MOZ_USE_XINPUT2="1"
-export   SAL_USE_VCLPLUGIN="gen"
+# - - misc - - #
+export MPD_HOST="127.0.0.1"
+export MOZ_USE_XINPUT2="1"
+export SAL_USE_VCLPLUGIN="gen"
 export LIBVIRT_DEFAULT_URI="qemu:///system"
 
-# 1.4 > colors
- c_res="\033[0;39m"
-cl_blk="\033[0;30m" cb_blk="\033[1;30m"
-cl_red="\033[0;31m" cb_red="\033[1;31m"
-cl_grn="\033[0;32m" cb_grn="\033[1;32m"
-cl_yel="\033[0;33m" cb_yel="\033[1;33m"
-cl_blu="\033[0;34m" cb_blu="\033[1;34m"
-cl_mgn="\033[0;35m" cb_mgn="\033[1;35m"
-cl_cyn="\033[0;36m" cb_cyn="\033[1;36m"
-cl_whi="\033[0;37m" cb_whi="\033[1;37m"
+# - - colors - - #
+c_res="\033[0;39m"
+cl_blk="\033[0;30m"
+cl_red="\033[0;31m"
+cl_grn="\033[0;32m"
+cl_yel="\033[0;33m"
+cl_blu="\033[0;34m"
+cl_mgn="\033[0;35m"
+cl_cyn="\033[0;36m"
+cl_whi="\033[0;37m"
+cb_blk="\033[1;30m"
+cb_red="\033[1;31m"
+cb_grn="\033[1;32m"
+cb_yel="\033[1;33m"
+cb_blu="\033[1;34m"
+cb_mgn="\033[1;35m"
+cb_cyn="\033[1;36m"
+cb_whi="\033[1;37m"
 
-# 1.5 > ssh-agent behavior
-unset SSH_AUTH_SOCK SSH_AGENT_PID
-[ -f "/tmp/ssh_sesh.tmp" ] && . /tmp/ssh_sesh.tmp
+# - - ssh agent - - #
+# our own ssh-agent:
+#  - SSH_AUTH_SOCK=tmp/ssh-<rand>/agent.<num>
+#  - SSH_AGENT_PID=<pid>
+# agent-forward:
+#  - SSH_AUTH_SOCK=/tmp/ssh-<rand>/agent.<num>
+#  - SSH_CONNECTION=<conn ip> <conn pid> <our ip> <our port>
+#  - SSH_CLIENT=<conn ip> <conn pid> <our port>
+#  - SSH_TTY=/dev/pts/<pty>
+#
+# 1. AUTH_SOCK exists on both cases
+# 2. if there is a CONNECTION and CLIENT, and no PID == forward
+# 3. if there is PID == our agent
+#
+# in cases where we get forwarded, do not unset anything, and disable use of
+# sesh{,k}.
 
-# 2 > functions
-cdo()  { cd - >/dev/null 2>&1;}
-tarup(){ tar cfp "${1}".tar "${1}";}
-ytmusic(){
- yt-dlp \
-  -o "${PWD}/%(playlist_title)s/%(playlist_index)s %(title)s.%(ext)s" \
-  -f bestaudio                                                        \
- ${@}
-}
+set +u
+
+if [ "${SSH_AUTH_SOCK}" ] && [ "${SSH_CONNECTION}" ] && [ ! "${SSH_AGENT_PID}" ]
+    then
+        # ssh'd into a machine that has no ssh-agent running.
+        # disable use of sesh commands.
+        export MSS_SESH_CMD_ALLOWED="0"
+        echo "export SSH_AUTH_SOCK=${SSH_AUTH_SOCK}" > /tmp/ssh_sesh.tmp
+    else
+        export MSS_SESH_CMD_ALLOWED="1"
+        unset SSH_AUTH_SOCK SSH_AGENT_PID
+        [ -f "/tmp/ssh_sesh.tmp" ] && . /tmp/ssh_sesh.tmp
+fi
+
+set -u
+
 sesh() {
     set +u
 
-    if [ -z "${SSH_AGENT_PID}" ]; then
-        ssh-agent | head -2 > /tmp/ssh_sesh.tmp
+    if [ "${MSS_SESH_CMD_ALLOWED}" -eq 1 ]; then
+        if [ -z "${SSH_AGENT_PID}" ]; then
+            ssh-agent | head -2 > /tmp/ssh_sesh.tmp
+            . /tmp/ssh_sesh.tmp
+        fi
+
+        ssh-add /home/mss/.ssh/id_ed25519
+    fi
+
+    set -u
+}
+
+seshk(){
+    set +u
+
+    if [ "${MSS_SESH_CMD_ALLOWED}" -eq 1 ]; then
+        ssh-agent -k | head -2 > /tmp/ssh_sesh.tmp
         . /tmp/ssh_sesh.tmp
     fi
 
     set -u
-
-    ssh-add /home/mss/.ssh/id_ed25519
 }
 
-seshk(){
-    ssh-agent -k | head -2 > /tmp/ssh_sesh.tmp
-    . /tmp/ssh_sesh.tmp
+# 3 > misc functions
+cdo(){
+    cd - >/dev/null 2>&1;
 }
