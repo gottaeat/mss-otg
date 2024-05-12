@@ -7,7 +7,7 @@ export PAGER="less"
 export EDITOR="vim"
 export GPG_TTY="$(tty)"
 
-# - - misc - - #
+# - - misc vars - - #
 export MPD_HOST="127.0.0.1"
 export MOZ_USE_XINPUT2="1"
 export SAL_USE_VCLPLUGIN="gen"
@@ -49,8 +49,6 @@ cb_whi="\033[1;37m"
 # in cases where we get forwarded, do not unset anything, and disable use of
 # sesh{,k}.
 
-set +u
-
 if [ "${SSH_AUTH_SOCK}" ] && [ "${SSH_CONNECTION}" ] && [ ! "${SSH_AGENT_PID}" ]
     then
         # ssh'd into a machine that has no ssh-agent running.
@@ -63,11 +61,7 @@ if [ "${SSH_AUTH_SOCK}" ] && [ "${SSH_CONNECTION}" ] && [ ! "${SSH_AGENT_PID}" ]
         [ -f "/tmp/ssh_sesh.tmp" ] && . /tmp/ssh_sesh.tmp
 fi
 
-set -u
-
 sesh() {
-    set +u
-
     if [ "${MSS_SESH_CMD_ALLOWED}" -eq 1 ]; then
         if [ -z "${SSH_AGENT_PID}" ]; then
             ssh-agent | head -2 > /tmp/ssh_sesh.tmp
@@ -76,22 +70,16 @@ sesh() {
 
         ssh-add /home/mss/.ssh/id_ed25519
     fi
-
-    set -u
 }
 
 seshk(){
-    set +u
-
     if [ "${MSS_SESH_CMD_ALLOWED}" -eq 1 ]; then
         ssh-agent -k | head -2 > /tmp/ssh_sesh.tmp
         . /tmp/ssh_sesh.tmp
     fi
-
-    set -u
 }
 
-# 3 > misc functions
+# - - misc funcs - - #
 cdo(){
     cd - >/dev/null 2>&1;
 }

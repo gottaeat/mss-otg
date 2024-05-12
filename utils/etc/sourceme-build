@@ -1,16 +1,23 @@
-# 1 > toolchain vars
-# 11 > c/c++ tooling
-export  CPPFLAGS="-DNDEBUG -D_FORTIFY_SOURCE=2"
-          CFLAGS="${CPPFLAGS} -g0 -s -w -pipe -O3 -march=x86-64 -mtune=generic"
-export    CFLAGS="${CFLAGS} -fcommon -fstack-protector-strong"
-export  CXXFLAGS="${CFLAGS}"
-export   LDFLAGS="${CFLAGS} -Wl,--as-needed,--sort-common,-z,relro,-z,now,--gc-sections,-O3"
+# vim: set ft=sh:
 
-# 1.2 > build system specific
-export MAKEFLAGS="-j$(nproc) V=1"
-export SAMUFLAGS="-j$(nproc) -v"
+# - - c tooling - - #
+CPPFLAGS="-DNDEBUG -D_FORTIFY_SOURCE=2"
+CFLAGS="${CPPFLAGS} -g0 -s -w -pipe -O3 -march=x86-64 -mtune=generic"
+CFLAGS="${CFLAGS} -fcommon -fstack-protector-strong"
+CXXFLAGS="${CFLAGS}"
+LDFLAGS="${CFLAGS} -Wl,--as-needed,--sort-common,-z,relro,-z,now,--gc-sections,-O3"
 
-# 1.3 > --build and --host
-export     CARCH="x86_64"
-export     CHOST="${CARCH}-pc-linux-gnu"
-export    CBUILD="${CHOST}"
+export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS
+
+# - - build systems - - #
+MAKEFLAGS="-j$(nproc) V=1"
+SAMUFLAGS="-j$(nproc) -v"
+
+export MAKEFLAGS SAMUFLAGS
+
+# - - host spec - - #
+CARCH="x86_64"
+CHOST="${CARCH}-pc-linux-gnu"
+CBUILD="${CHOST}"
+
+export CARCH CHOST CBUILD

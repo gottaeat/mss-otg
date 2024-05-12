@@ -1,50 +1,45 @@
-# 1 > aliases
-# 1.1 > ls and grep
-alias        ls="/bin/ls -AFHhp --group-directories-first --color=auto"
-alias         l="/bin/ls -AFHhp --group-directories-first --color=auto"
-alias        ll="/bin/ls -AFHhp --group-directories-first --color=auto -w1"
-alias       lll="/bin/ls -AFHhp --group-directories-first --color=auto -l"
-alias      grep="grep --color=auto"
+# vim: set ft=sh:
 
-# 1.2 > cd
-alias       cde="cd /mnt/mss/externalstuff"
-alias       cdg="cd /mnt/mss/stuff/techy-bits/git"
-alias       cdl="cd /mnt/mss/stuff/media/lewd"
-alias       cdm="cd /mnt/mss/stuff/media/music"
-alias       cdr="cd /mss/repo"
-alias       cds="cd /mnt/mss/stuff"
-alias       cdw="cd /mss/work"
-alias      cdt1="cd /mss/work/table"
-alias      cdt2="cd /mss/work/table2"
-alias      cdt3="cd /mss/work/table3"
-alias      cdt4="cd /mss/work/table4"
-alias      cdt5="cd /mss/work/table5"
+# - - ls + grep - - #
+alias ls="/bin/ls -AFHhp --group-directories-first --color=auto"
+alias l="/bin/ls -AFHhp --group-directories-first --color=auto"
+alias ll="/bin/ls -AFHhp --group-directories-first --color=auto -w1"
+alias lll="/bin/ls -AFHhp --group-directories-first --color=auto -l"
+alias grep="grep --color=auto"
 
-# 1.3 > tmux
-alias      tmux="tmux -2"
-alias        ta="tmux attach"
-alias        td="tmux detach"
-alias        tk="tmux kill-session -t"
-alias        tl="tmux ls"
+# - - cd - -#
+alias cde="cd /mnt/mss/externalstuff"
+alias cdg="cd /mnt/mss/stuff/techy-bits/git"
+alias cdl="cd /mnt/mss/stuff/media/lewd"
+alias cdm="cd /mnt/mss/stuff/media/music"
+alias cdr="cd /mss/repo"
+alias cds="cd /mnt/mss/stuff"
+alias cdw="cd /mss/work"
+alias cdt1="cd /mss/work/table"
+alias cdt2="cd /mss/work/table2"
+alias cdt3="cd /mss/work/table3"
+alias cdt4="cd /mss/work/table4"
+alias cdt5="cd /mss/work/table5"
 
-# 1.4 > git
-alias        gs="git status -s"
-alias        gl="git log --oneline"
-alias      gcd1="git clone --depth=1 --recursive --shallow-submodules"
+# - - tmux - - #
+alias tmux="tmux -2"
+alias ta="tmux attach"
 
-# 1.5 > media
-alias     ytmp3="yt-dlp -f bestaudio -x --audio-format mp3 --audio-quality 0"
-alias      ptog="pactl set-sink-mute @DEFAULT_SINK@ toggle"
-alias      atog="ptog"
-alias      mtog="mpc toggle"
-alias       feh="feh -d --scale-down --auto-zoom"
+# - - git - - #
+alias gs="git status -s"
+alias gl="git log --oneline"
+alias gcd1="git clone --depth=1 --recursive --shallow-submodules"
 
-# 1.6 > verbosity
-alias        cp="cp -v"
-alias        ln="ln -v"
-alias        mv="mv -v"
-alias     mkdir="mkdir -pv"
-alias     mount="mount -v"
+# - - media - - #
+alias atog="pactl set-sink-mute @DEFAULT_SINK@ toggle"
+alias feh="feh -d --scale-down --auto-zoom"
 
-# 1.7 > ease of access
-alias        a2="/mss/bin/cb"
+# - - verbosity - - #
+alias cp="cp -v"
+alias ln="ln -v"
+alias mv="mv -v"
+alias mkdir="mkdir -pv"
+alias mount="mount -v"
+
+# - - legacy bloat - - #
+alias a2="/mss/bin/cb"
