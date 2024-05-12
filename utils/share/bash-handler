@@ -21,7 +21,7 @@ append_path '/usr/bin'
 export PATH
 
 # - - don't expose - - #
-unset TERMCAP MANPATH append_path
+unset TERMCAP MANPATH
 
 # - - bash specific - - #
 if [ ! -z "${BASH}" ]; then
@@ -33,6 +33,8 @@ if [ ! -z "${BASH}" ]; then
 
         unset i
     fi
+
+    unset append_path
 
     # - - prompts - - #
     _PS1_BASE=" \$? \[\033[1;37m\]\W\[\033[1;31m\]:\[\e[m\] "
