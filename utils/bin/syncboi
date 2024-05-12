@@ -1,24 +1,20 @@
 #!/bin/sh
 exec rsync -v \
- --progress      \
- --ipv4          \
-\
- --delete        \
- --numeric-ids   \
-\
- --recursive     \
- --links         \
- --perms         \
- --times         \
- --group         \
- --owner         \
- --devices       \
- --specials      \
-\
- --no-acls       \
- --no-xattrs     \
- --no-atimes     \
- --no-crtimes    \
- --no-hard-links \
-\
- "${@}"
+    --progress \
+    --ipv4 \
+    --delete \
+    --numeric-ids \
+    --recursive \
+    --links \
+    --perms \
+    --times \
+    --group \
+    --owner \
+    --devices \
+    --specials \
+    --no-acls \
+    --no-xattrs \
+    --no-atimes \
+    --no-crtimes \
+    --no-hard-links \
+    "${@}"

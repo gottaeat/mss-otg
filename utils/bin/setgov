@@ -2,42 +2,36 @@
 . /mss/etc/funcs
 
 case "${1}" in
- cur)
-  aprint_nc
-   read govcurrent < /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-   lsdetail "current" "${govcurrent}"
-  aprint_nc
-  exit 0
- ;;
- performance|powersave|userspace|ondemand|conservative|schedutil)
-  rootcheck
+    cur)
+        read govcurrent < /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+        lsdetail "current" "${govcurrent}"
+        exit 0
+    ;;
+    performance|powersave|userspace|ondemand|conservative|schedutil)
+        rootcheck
+        gov="${1}"
+        read avail \
+            < /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors
 
-  gov="${1}"
-  read avail < /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors
-
-  aprint_nc
-  if echo "${avail}" | sed 's/ /\n/g' | grep "${gov}" >/dev/null 2>&1
-   then
-    aprint_ret "setting the governor to ${cb_grn}${gov}${c_res}."
-     for i in /sys/devices/system/cpu/*/cpufreq/scaling_governor; do
-      echo "${gov}" > "${i}"
-     done
-    evalretkill
-    aprint_nc
-   else
-    aprint_fail "${cb_red}${gov}${c_res} is not a valid governor."
-    aprint_nc
-    aprint_info "available governors are:"
-    for i in ${avail}; do aprint_arm "${i}"; done
-    aprint_nc
-    exit 1
-  fi
- ;;
- *)
-  aprint_nc
-  aprint_usage "{cur}{performance|powersave|schedutil}"
-  aprint_usage "     {userspace|ondemand|conservative}"
-  aprint_nc
-  exit 1
- ;;
+        if echo "${avail}" | sed 's/ /\n/g' | grep "${gov}" >/dev/null 2>&1
+          then
+              aprint_ret "setting the governor to ${cb_grn}${gov}${c_res}."
+              for i in /sys/devices/system/cpu/*/cpufreq/scaling_governor; do
+                  echo "${gov}" > "${i}"
+              done
+              evalretkill
+          else
+              aprint_fail "${cb_red}${gov}${c_res} is not a valid governor."
+              aprint_info "available governors are:"
+              for i in ${avail}; do
+                  aprint_arm "${i}"
+              done
+              exit 1
+        fi
+    ;;
+    *)
+        aprint_usage "{cur}{performance|powersave|schedutil}"
+        aprint_usage "     {userspace|ondemand|conservative}"
+        exit 1
+    ;;
 esac

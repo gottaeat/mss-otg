@@ -1,56 +1,57 @@
 #!/bin/sh
 . /mss/etc/funcs
 
-     dat="$(date "+%Y%m%d_%H%M%S_maimscrot")"
-     loc="/mnt/mss/stuff/personal/screenshots/entire/${dat}.png"
+dat="$(date "+%Y%m%d_%H%M%S_maimscrot")"
+loc="/mnt/mss/stuff/personal/screenshots/entire/${dat}.png"
 
 monscurr="$(xrandr --listactivemonitors)"
 moncount="$(echo "${monscurr}" | awk '/Monitors: /{print $2}')"
 
 if [ "${moncount}" -eq 1 ];
- then
-  monprimary="$(echo ${monscurr} | awk '/+/{gsub(/+/,""); print $4}')"
- else
-  monprimary="$(echo "${monscurr}" | awk '/*/{print $4}')"
+    then
+        monprimary="$(echo ${monscurr} | awk '/+/{gsub(/+/,""); print $4}')"
+    else
+        monprimary="$(echo "${monscurr}" | awk '/*/{print $4}')"
 fi
 
 if [ -z "${monprimary}" ]; then
- monprimary="$(echo "${monscurr}" | awk '/^ 0:/{print $4}')"
+    monprimary="$(echo "${monscurr}" | awk '/^ 0:/{print $4}')"
 fi
 
-if [ -z "${monprimary}" ]; then aprint_fail "fucked"; exit 1; fi
+if [ -z "${monprimary}" ]; then
+    aprint_fail "fucked"
+    exit 1
+fi
 
 primonrandr="$(xrandr --current | grep ^"${monprimary}")"
-  checkprim="$(echo "${primonrandr}" | awk '{print $3}')"
+checkprim="$(echo "${primonrandr}" | awk '{print $3}')"
 
 if [ "${checkprim}" = "primary" ];
- then
-  primaryres="$(echo "${primonrandr}" | awk '{print $4}')"
- else
-  primaryres="${checkprim}"
+    then
+        primaryres="$(echo "${primonrandr}" | awk '{print $4}')"
+    else
+        primaryres="${checkprim}"
 fi
 
 if [ -z "${1}" ]
- then savloc="${loc}"
- else savloc="${1}"
+    then
+        savloc="${loc}"
+    else
+        savloc="${1}"
 fi
 
-aprint_nc
 lsdetail "primary screen res" "${primaryres}"
-aprint_nc
 
 aprint_ret "grabbing screen." 
- maim -u > /tmp/maimcrop.tmp
+maim -u > /tmp/maimcrop.tmp
 evalretkill
 
 aprint_ret "cropping the primary monitor." 
- convert /tmp/maimcrop.tmp -crop "${primaryres}" ${savloc}
+convert /tmp/maimcrop.tmp -crop "${primaryres}" ${savloc}
 evalretkill
 
 aprint_ret "removing temp files."
- rm -f /tmp/maimcrop.tmp
+rm -f /tmp/maimcrop.tmp
 evalretkill
 
-aprint_nc
 lsdetail "saved to" "${savloc}"
-aprint_nc

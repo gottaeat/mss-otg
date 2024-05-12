@@ -1,7 +1,2 @@
 #!/bin/sh
-exec curl \
- -L     \
- -O     \
- -X GET \
-\
- "${@}"
+exec curl -L -O "${@}"

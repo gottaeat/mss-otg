@@ -11,15 +11,14 @@ for k in *; do
 
         ffmpeg \
             -i "${meme}".webm \
-            -threads 8        \
-            -ab 320k          \
-            -map_metadata 0   \
-            -id3v2_version 3  \
+            -threads 8 \
+            -ab 320k \
+            -map_metadata 0 \
+            -id3v2_version 3 \
             "${meme}".mp3 >/dev/null 2>&1
   
         rm -rf "${meme}".webm
     done
 
-    aprint_nc
     cd ../
 done 

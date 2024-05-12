@@ -4,21 +4,21 @@
 dat="$(date "+%Y%m%d_%H%M%S_ttygrab")"
 loc="/mnt/mss/stuff/personal/screenshots/tty/${dat}.png"
 
-grab_tty(){ fbcat > /tmp/tty.ppm ;}
+grab_tty(){
+    fbcat > /tmp/tty.ppm
+}
 
 if [ -z "${1}" ]
- then
-  savloc="${loc}"
-  grab_tty
-  convert /tmp/tty.ppm "${loc}"
- else
-  savloc="${1}"
-  grab_tty
-  convert /tmp/tty.ppm "${1}"
+    then
+        savloc="${loc}"
+        grab_tty
+        convert /tmp/tty.ppm "${loc}"
+    else
+        savloc="${1}"
+        grab_tty
+        convert /tmp/tty.ppm "${1}"
 fi
 
 rm -f /tmp/tty.ppm
 
-aprint_nc
 lsdetail "saved to" "${savloc}"
-aprint_nc

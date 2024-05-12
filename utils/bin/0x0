@@ -2,6 +2,9 @@
 . /mss/etc/funcs
 
 if [ -z "${1}" ]
- then aprint_fail "specify a file to upload in \$2, exiting."; exit 1
- else curl -F"file=@${1}" "https://0x0.st"
+    then
+        aprint_fail "specify a file to upload in \$2, exiting."
+        exit 1
+    else
+        curl -F"file=@${1}" "https://0x0.st"
 fi

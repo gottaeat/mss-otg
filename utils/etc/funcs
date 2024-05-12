@@ -1,56 +1,100 @@
 #!/bin/sh
 . /mss/etc/sourceme
 
-# 1 > define prompts
-    sbefore="   "
-    pbefore=" "
-   cur_zero="\\033[0G"
+# - - prompts - - #
+sbefore="   "
+pbefore=" "
+cur_zero="\\033[0G"
 
-    s_fail="${cb_red}f${c_res}"
-    s_info="${cb_blu}i${c_res}"
-    s_succ="${cb_grn}s${c_res}"
-     s_arm="${cb_cyn}└${c_res}"
+s_fail="${cb_red}f${c_res}"
+s_info="${cb_blu}i${c_res}"
+s_succ="${cb_grn}s${c_res}"
+s_arm="${cb_cyn}└${c_res}"
 
 memearrow="${pbefore}${cb_whi}→${c_res} "
-     askq="${pbefore}${cb_blu}?${c_res} "
+askq="${pbefore}${cb_blu}?${c_res} "
 
-# 2 > printing functions
-aprint()      { printf "${memearrow}${@}\n"; }
-aprint_nc()   { printf "\n";                 }
-aprint_nm()   { printf "${sbefore}${@}\n";   }
-aprint_ret()  { printf "${sbefore}${@}";     }
-aprint_ask()  { printf "${askq}${@}";        }
+# - - prints - - #
+aprint(){
+    printf "${memearrow}${@}\n"
+}
 
-failprompt()  { printf "${cur_zero}${pbefore}${s_fail}\n"; }
-infoprompt()  { printf "${cur_zero}${pbefore}${s_info}\n"; }
-succprompt()  { printf "${cur_zero}${pbefore}${s_succ}\n"; }
-armprompt()   { printf "${cur_zero}${pbefore}${s_arm}\n";  }
+aprint_ret(){
+    printf "${sbefore}${@}"
+}
 
-aprint_fail() { printf "${sbefore}${@}"; failprompt; }
-aprint_info() { printf "${sbefore}${@}"; infoprompt; }
-aprint_succ() { printf "${sbefore}${@}"; succprompt; }
-aprint_arm()  { printf "${sbefore}${@}"; armprompt ; }
+aprint_ask(){
+    printf "${askq}${@}"
+}
 
-aprint_usage(){ aprint "${cb_red}usage${cb_blu}:${c_res} ${@}"; }
-lsdetail()    { aprint "${cb_red}${1} ${cb_blu}:${c_res} ${2}"; }
+failprompt(){
+    printf "${cur_zero}${pbefore}${s_fail}\n"
+}
+infoprompt(){
+    printf "${cur_zero}${pbefore}${s_info}\n"
+}
+succprompt(){
+    printf "${cur_zero}${pbefore}${s_succ}\n"
+}
+armprompt(){
+    printf "${cur_zero}${pbefore}${s_arm}\n"
+}
+
+aprint_fail(){
+    printf "${sbefore}${@}"
+    failprompt
+}
+
+aprint_info(){
+    printf "${sbefore}${@}"
+    infoprompt
+}
+
+aprint_succ(){
+    printf "${sbefore}${@}"
+    succprompt;
+}
+
+aprint_arm(){
+    printf "${sbefore}${@}"
+    armprompt
+}
+
+aprint_usage(){
+    aprint "${cb_red}usage${cb_blu}:${c_res} ${@}"
+}
+
+lsdetail(){
+    aprint "${cb_red}${1} ${cb_blu}:${c_res} ${2}"
+}
 
 # 3 > checks and evaluation functions
 evalret(){
- local error_value="${?}"
- if [ ${error_value} -eq 0 ]; then succprompt; else failprompt; fi
+    local error_value="${?}"
+
+    if [ ${error_value} -eq 0 ]
+        then
+            succprompt
+        else
+            failprompt
+    fi
 }
 
 evalretkill(){
- local error_value="${?}"
- if [ ${error_value} -eq 0 ]; then succprompt; else failprompt; exit 1; fi
+    local error_value="${?}"
+
+    if [ ${error_value} -eq 0 ];
+        then
+            succprompt
+        else
+            failprompt
+            exit 1
+    fi
 }
 
 rootcheck(){
- if [ "$(id -u)" -ne 0 ]
-  then
-   aprint_nc
-   aprint_fail "this script must be run as uid 0, exiting."
-   aprint_nc
-   exit 1
- fi
+    if [ "$(id -u)" -ne 0 ]; then
+        aprint_fail "this script must be run as uid 0, exiting."
+        exit 1
+    fi
 }

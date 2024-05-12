@@ -1,5 +1,7 @@
 #!/bin/sh
 if [ -z "${1}" ]
- then find . | sed 's/^.//g' | sort | uniq | less
- else find . | sed 's/^.//g' | sort | uniq > "${1}"
+    then
+        find . | sed 's/^.//g' | sort | uniq | less
+    else
+        find . | sed 's/^.//g' | sort | uniq > "${1}"
 fi
