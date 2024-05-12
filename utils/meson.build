@@ -24,7 +24,6 @@ files_bin = [
     'bin/maimcrop',
     'bin/maimscrot',
     'bin/ossl',
-    'bin/pkgup',
     'bin/setbright',
     'bin/setcake.py',
     'bin/setgov',
