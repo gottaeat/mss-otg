@@ -1,51 +1,62 @@
-# 1 > set umask
+# vim: set ft=sh:
+
 umask 022
 
-# 2 > append base to path
+# - - path - - #
 append_path(){
- case ":$PATH:" in
-  *:"$1":*)                   ;;
-  *) PATH="${PATH:+$PATH:}$1" ;;
- esac
+    case ":$PATH:" in
+        *:"$1":*)
+        ;;
+        *)
+            PATH="${PATH:+$PATH:}$1"
+        ;;
+    esac
 }
 
 PATH="/mss/bin:${PATH}"
 append_path '/usr/local/sbin'
 append_path '/usr/local/bin'
 append_path '/usr/bin'
+
 export PATH
 
-# 2 > append under profile.d/
-if [ -d "/etc/profile.d" ]; then
- for i in /etc/profile.d/*.sh; do
-  [ -r "${i}" ] && . "${i}"
- done
-
- unset i
-fi
-
-# 3 > unset vars
+# - - don't expose - - #
 unset TERMCAP MANPATH append_path
 
-# 4 > bash
+# - - bash specific - - #
 if [ ! -z "${BASH}" ]; then
- if [ -r /usr/share/bash-completion/bash_completion ]; then
-  . /usr/share/bash-completion/bash_completion
- fi
+    # - - profile.d - - #
+    if [ -d "/etc/profile.d" ]; then
+        for i in /etc/profile.d/*.sh; do
+            [ -r "${i}" ] && . "${i}"
+        done
 
- if [ $(id -u) -eq 0 ]
-  then export PS1="\[\033[1;34m\] \$? \[\033[1;37m\]\W\[\033[1;31m\]:\[\e[m\] "
-  else export PS1="\[\033[1;30m\] \$? \[\033[1;37m\]\W\[\033[1;31m\]:\[\e[m\] "
- fi
+        unset i
+    fi
 
- export PS2=" \[\033[1;37m\]>\[\e[m\] "
+    # - - prompts - - #
+    _PS1_BASE=" \$? \[\033[1;37m\]\W\[\033[1;31m\]:\[\e[m\] "
 
- shopt -s histappend
- set -u
- PROMPT_COMMAND="history -a; history -c; history -r"
- HISTSIZE=1000
+    if [ $(id -u) -eq 0 ]
+        then
+            PS1="\[\033[1;34m\]${_PS1_BASE}"
+        else
+            PS1="\[\033[1;30m\]${_PS1_BASE}"
+    fi
 
- . /mss/etc/sourceme
- . /mss/etc/sourceme-aliases
- . /mss/etc/sourceme-build
+    PS2=" \[\033[1;37m\]>\[\e[m\] "
+
+    export PS1 PS2
+    unset _PS1_BASE
+
+    # - - history - - #
+    shopt -s histappend
+
+    PROMPT_COMMAND="history -a; history -c; history -r"
+    HISTSIZE=1000
 fi
+
+# - - otg - - #
+. /mss/etc/sourceme
+. /mss/etc/sourceme-aliases
+. /mss/etc/sourceme-build
