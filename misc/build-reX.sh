@@ -1,7 +1,12 @@
 #!/bin/bash -i
+if [ -z "${REPO_PATH}" ]; then
+    echo " ! REPO_PATH env var is not set."
+    exit 1
+fi
+
 cdt1 
 
-gcd1 https://git.tcp.direct/mss/re3 -b master
+gcd1 "${REPO_PATH}" -b master
 cd re3/
 
 ./premake5Linux --with-librw --verbose gmake2
@@ -23,7 +28,7 @@ cp -rfv \
 cd ../; rm -rf re3/
 
 # 2
-gcd1 https://git.tcp.direct/mss/re3 -b miami
+gcd1 "${REPO_PATH}" -b miami
 cd re3/
 
 ./premake5Linux --with-librw --verbose gmake2
