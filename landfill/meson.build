@@ -1,6 +1,6 @@
 # -- landfill -- #
 project('landfill', 'c',
-    version: '32',
+    version: '33',
     license: 'MIT',
     default_options: [
         'buildtype=plain',
@@ -141,7 +141,7 @@ st_deps = [
 ]
 
 st_extra = [
-    '-DVERSION="0.9-landfill"',
+    '-DVERSION="0.9.2-landfill"',
     '-D_XOPEN_SOURCE=600'
 ]
 

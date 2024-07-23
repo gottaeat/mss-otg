@@ -63,7 +63,7 @@ static uint forcemousemod              = ShiftMask;
 static unsigned int doubleclicktimeout = 300;
 static unsigned int tripleclicktimeout = 600;
 static unsigned int blinktimeout       = 800;
-static double minlatency               = 8;
+static double minlatency               = 2;
 static double maxlatency               = 33;
 
 #define MODKEY  Mod1Mask
