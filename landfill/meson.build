@@ -104,7 +104,7 @@ dwm_deps = [
 ]
 
 dwm_extra = [
-    '-DVERSION="6.4-landfill"',
+    '-DVERSION="6.5-landfill"',
     '-DXINERAMA',
     '-D_BSD_SOURCE',
     '-D_DEFAULT_SOURCE',
