@@ -1,0 +1,32 @@
+install_data(
+    files(
+        '0x0',
+        'cb',
+        'cblist',
+        'chromium',
+        'colortest',
+        'comptoggle',
+        'csv2pw.py',
+        'dn',
+        'dwmenu',
+        'fetch.py',
+        'getip.py',
+        'ldir',
+        'maimclip',
+        'maimcrop',
+        'maimscrot',
+        'ossl',
+        'setbright',
+        'setcake.py',
+        'setgov',
+        'setmon',
+        'setxkeeb',
+        'statusbar.py',
+        'suspendtodisk',
+        'syncboi',
+        'ttygrab',
+        'weather.py',
+        'webm2mp3'
+    ),
+    install_dir: '/mss/bin'
+)
