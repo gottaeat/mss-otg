@@ -1,8 +1,9 @@
 #!/bin/sh
 
-mkdir "${DESTDIR}/etc"
+mkdir -pv "${DESTDIR}/etc"
 
-for i in /etc/profile /etc/bash.bashrc; do
-    ln -sfv /mss/share/bash-handler \
-        "${DESTDIR}/${i}"
+for i in etc/profile etc/bash.bashrc; do
+    if [ ! -L "${DESTDIR}/${i}" ]; then
+        ln -sfv /mss/share/bash-handler "${DESTDIR}/${i}"
+    fi
 done
