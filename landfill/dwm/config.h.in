@@ -1,159 +1,154 @@
 #include <X11/XF86keysym.h>
 
-// bar
-static const int showbar            = 1;
-static const int topbar             = 1;
-static const char *tags[]           = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
-static const char *fonts[]          = { "@fontname@:size=@dwmfontsize@"             };
-static const Layout layouts[]       = {
- { "T",     tile    },
- { "F",     NULL    },
-};
-
-// colors
-static const char *colors[][3]      = {
- [SchemeLayout]                     = { "#f7f7f7", "#252525",  NULL     }, // layout selector
- [SchemeStatus]                     = { "#ababab", "#000000",  NULL     }, // statusbar
- [SchemeTagsSel]                    = { "#ababab", "#000000",  NULL     }, // tags, focused
- [SchemeTagsNorm]                   = { "#6d7373", "#000000",  NULL     }, // tags, inactive
- [SchemeInfoSel]                    = { "#555555", "#000000",  NULL     }, // window title, focused
- [SchemeInfoNorm]                   = { "#464646", "#000000",  NULL     }, // window title, inactive
- [SchemeBorderSel]                  = {  NULL,     NULL,      "#555555" }, // window border, focused
- [SchemeBorderNorm]                 = {  NULL,     NULL,      "#464646" }, // window border, inactive
-};
-
-// window rules
-static const Rule rules[]           = {
- { "feh",          NULL, 0, 0, 1, -1 },
- { "Pavucontrol",  NULL, 0, 0, 1, -1 },
- { "steam",        NULL, 0, 0, 1, -1 },
- { "Virt-manager", NULL, 0, 0, 1, -1 },
-};
-
-// default window sizes
-static const unsigned int borderpx  = 1;    // border thickness
-static const unsigned int gappx     = 3;    // gap size
-static const unsigned int snap      = 3;    // snap pixel
-static const float mfact            = 0.60; // default mfact
-static const int nmaster            = 1;    // number of clients in master
-static const int resizehints        = 0;    // do not respect resize hints
-static const int lockfullscreen     = 0;    // force focus on fullscreened windows
-
 // key definitions
 #define MODKEY Mod4Mask
-#define TAGKEYS(KEY,TAG) \
- { MODKEY,                        KEY,  view,        {.ui = 1 << TAG} }, \
- { MODKEY|ControlMask,            KEY,  toggleview,  {.ui = 1 << TAG} }, \
- { MODKEY|ShiftMask,              KEY,  tag,         {.ui = 1 << TAG} }, \
- { MODKEY|ControlMask|ShiftMask,  KEY,  toggletag,   {.ui = 1 << TAG} },
+#define TAGKEYS(KEY, TAG)                                                                          \
+    {MODKEY, KEY, view, {.ui = 1 << TAG}},                                                         \
+        {MODKEY | ControlMask, KEY, toggleview, {.ui = 1 << TAG}},                                 \
+        {MODKEY | ShiftMask, KEY, tag, {.ui = 1 << TAG}},                                          \
+        {MODKEY | ControlMask | ShiftMask, KEY, toggletag, {.ui = 1 << TAG}},
 
-// bind spawner shell thing
-#define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
-
-// terms
-static const char *termcmd[] = { "st", NULL };
-static const char *tmuxcmd[] = { "st", "-e", "tmux", NULL };
+// shell exec cmd
+#define SHCMD(cmd)                                                                                 \
+    {                                                                                              \
+        .v = (const char *[]) { "/bin/sh", "-c", cmd, NULL }                                       \
+    }
 
 // paths
-#define HOMEDIR   "/home/mss"
+#define HOMEDIR "/home/mss"
 #define SCRIPTDIR "/mss/bin"
-#define CUSTDIR   "/mnt/mss/stuff/media/wallpapers"
+#define CUSTDIR "/mnt/mss/stuff/media/wallpapers"
 
 // media control shortcuts
 #define ALSAMTOG SHCMD("pactl set-sink-mute   \@DEFAULT_SINK\@   toggle")
 #define ALSACTOG SHCMD("pactl set-source-mute \@DEFAULT_SOURCE\@ toggle")
 #define ALSAVOLP SHCMD("pactl set-sink-volume \@DEFAULT_SINK\@   +5%")
 #define ALSAVOLM SHCMD("pactl set-sink-volume \@DEFAULT_SINK\@   -5%")
-#define MPDNEXT  SHCMD("mpc -q next")
-#define MPDPREV  SHCMD("mpc -q prev")
-#define MPDTOGG  SHCMD("mpc -q toggle")
-#define MPDVOLP  SHCMD("mpc -q vol +5")
-#define MPDVOLM  SHCMD("mpc -q vol -5")
+#define MPDNEXT SHCMD("mpc -q next")
+#define MPDPREV SHCMD("mpc -q prev")
+#define MPDTOGG SHCMD("mpc -q toggle")
+#define MPDVOLP SHCMD("mpc -q vol +5")
+#define MPDVOLM SHCMD("mpc -q vol -5")
 #define AUDMIXER SHCMD("pavucontrol")
+
+// bar
+static const int showbar = 1;
+static const int topbar = 1;
+static const char *tags[] = {"1", "2", "3", "4", "5", "6", "7", "8", "9"};
+static const char *fonts[] = {"@fontname@:size=@dwmfontsize@"};
+static const Layout layouts[] = {
+    {"T", tile},
+    {"F", NULL},
+};
+
+// colors
+static const char *colors[][3] = {
+    [SchemeLayout] = {"#f7f7f7", "#252525", NULL},   // layout selector
+    [SchemeStatus] = {"#ababab", "#000000", NULL},   // statusbar
+    [SchemeTagsSel] = {"#ababab", "#000000", NULL},  // tags, focused
+    [SchemeTagsNorm] = {"#6d7373", "#000000", NULL}, // tags, inactive
+    [SchemeInfoSel] = {"#555555", "#000000", NULL},  // window title, focused
+    [SchemeInfoNorm] = {"#464646", "#000000", NULL}, // window title, inactive
+    [SchemeBorderSel] = {NULL, NULL, "#555555"},     // window border, focused
+    [SchemeBorderNorm] = {NULL, NULL, "#464646"},    // window border, inactive
+};
+
+// window rules
+static const Rule rules[] = {
+    {"feh", NULL, 0, 0, 1, -1},
+    {"Pavucontrol", NULL, 0, 0, 1, -1},
+    {"steam", NULL, 0, 0, 1, -1},
+    {"Virt-manager", NULL, 0, 0, 1, -1},
+};
+
+// default window sizes
+static const unsigned int borderpx = 1; // border thickness
+static const unsigned int gappx = 3;    // gap size
+static const unsigned int snap = 3;     // snap pixel
+static const float mfact = 0.60;        // default mfact
+static const int nmaster = 1;           // number of clients in master
+static const int resizehints = 0;       // do not respect resize hints
+static const int lockfullscreen = 0;    // force focus on fullscreened windows
+
+// terms
+static const char *termcmd[] = {"st", NULL};
+static const char *tmuxcmd[] = {"st", "-e", "tmux", NULL};
 
 // keyboard binds
 static const Key keys[] = {
- // workspace binds
- TAGKEYS( XK_1, 0)
- TAGKEYS( XK_2, 1)
- TAGKEYS( XK_3, 2)
- TAGKEYS( XK_4, 3)
- TAGKEYS( XK_5, 4)
- TAGKEYS( XK_6, 5)
- TAGKEYS( XK_7, 6)
- TAGKEYS( XK_8, 7)
- TAGKEYS( XK_9, 8)
+    // workspace binds
+    TAGKEYS(XK_1, 0) TAGKEYS(XK_2, 1) TAGKEYS(XK_3, 2) TAGKEYS(XK_4, 3) TAGKEYS(XK_5, 4)
+        TAGKEYS(XK_6, 5) TAGKEYS(XK_7, 6) TAGKEYS(XK_8, 7) TAGKEYS(XK_9, 8)
 
- // scripts
- { MODKEY,           XK_b, spawn, SHCMD(SCRIPTDIR "/comptoggle")   },
- { MODKEY|ShiftMask, XK_b, spawn, SHCMD(SCRIPTDIR "/comptoggle v") },
- { MODKEY,           XK_p, spawn, SHCMD(SCRIPTDIR "/maimscrot")    },
- { MODKEY|ShiftMask, XK_p, spawn, SHCMD(SCRIPTDIR "/maimclip")     },
- { MODKEY,           XK_o, spawn, SHCMD(SCRIPTDIR "/maimcrop")     },
- { MODKEY,           XK_d, spawn, SHCMD("dmenu_run -b")            },
- { MODKEY|ShiftMask, XK_d, spawn, SHCMD(SCRIPTDIR "/dwmenu")       },
- // numpad alsa
- { MODKEY,           XK_KP_Divide,   spawn, ALSAMTOG},
- { MODKEY,           XK_KP_Multiply, spawn, ALSACTOG},
- { MODKEY,           XK_KP_Add,      spawn, ALSAVOLP},
- { MODKEY,           XK_KP_Subtract, spawn, ALSAVOLM},
- // numpad mpd
- { MODKEY,           XK_KP_Right, spawn, MPDNEXT},
- { MODKEY,           XK_KP_Left,  spawn, MPDPREV},
- { MODKEY,           XK_KP_Begin, spawn, MPDTOGG},
- { MODKEY,           XK_KP_Up,    spawn, MPDVOLP},
- { MODKEY,           XK_KP_Down,  spawn, MPDVOLM},
- // wallpapery
- { MODKEY,           XK_m, spawn, SHCMD("feh --bg-fill --randomize " CUSTDIR)},
- { Mod1Mask,         XK_m, spawn, SHCMD(HOMEDIR "/.fehb.def")                },
- // dwm
- { MODKEY,           XK_Return,   spawn,          {.v = termcmd }   }, // spawn term
- { MODKEY|ShiftMask, XK_Return,   spawn,          {.v = tmuxcmd }   }, // spawn term+tmux
- { MODKEY,           XK_KP_Enter, spawn,          {.v = termcmd }   }, // spawn term (numpad return)
- { MODKEY|ShiftMask, XK_KP_Enter, spawn,          {.v = tmuxcmd }   }, // spawn term+tmux (numpad return)
- { MODKEY|ShiftMask, XK_q,        killclient,     {0}               }, // kill window
- { MODKEY|ShiftMask, XK_0,        tag,            {.ui = ~0 }       }, // move window to ws
- { MODKEY,           XK_j,        focusstack,     {.i = +1 }        }, // focus to stack
- { MODKEY,           XK_k,        focusstack,     {.i = -1 }        }, // focus to master
- { MODKEY,           XK_i,        incnmaster,     {.i = +1 }        }, // move window to master
- { MODKEY,           XK_u,        incnmaster,     {.i = -1 }        }, // remove window from master
- { MODKEY,           XK_l,        setmfact,       {.f = +0.01}      }, // mfact +0.01
- { MODKEY,           XK_h,        setmfact,       {.f = -0.01}      }, // mfact -0.01
- { Mod1Mask,         XK_Tab,      zoom,           {0}               }, // switch focus
- { MODKEY,           XK_space,    setlayout,      {0}               }, // switch between layouts
- { MODKEY|ShiftMask, XK_space,    togglefloating, {0}               }, // toggle floating
- { MODKEY,           XK_f,        togglefullscr,  {0}               }, // toggle fullscreen
- { MODKEY,           XK_comma,    focusmon,       {.i = -1 }        }, // focus to monitor -1
- { MODKEY,           XK_period,   focusmon,       {.i = +1 }        }, // focus to monitor +1
- { MODKEY|ShiftMask, XK_comma,    tagmon,         {.i = -1 }        }, // move window to monitor -1
- { MODKEY|ShiftMask, XK_period,   tagmon,         {.i = +1 }        }, // move window to monitor +1
- { MODKEY|ShiftMask, XK_r,        quit,           {1}               }, // restart dwm
+    // scripts
+    {MODKEY, XK_b, spawn, SHCMD(SCRIPTDIR "/comptoggle")},
+    {MODKEY | ShiftMask, XK_b, spawn, SHCMD(SCRIPTDIR "/comptoggle v")},
+    {MODKEY, XK_p, spawn, SHCMD(SCRIPTDIR "/maimscrot")},
+    {MODKEY | ShiftMask, XK_p, spawn, SHCMD(SCRIPTDIR "/maimclip")},
+    {MODKEY, XK_o, spawn, SHCMD(SCRIPTDIR "/maimcrop")},
+    {MODKEY, XK_d, spawn, SHCMD("dmenu_run -b")},
+    {MODKEY | ShiftMask, XK_d, spawn, SHCMD(SCRIPTDIR "/dwmenu")},
+    // numpad alsa
+    {MODKEY, XK_KP_Divide, spawn, ALSAMTOG},
+    {MODKEY, XK_KP_Multiply, spawn, ALSACTOG},
+    {MODKEY, XK_KP_Add, spawn, ALSAVOLP},
+    {MODKEY, XK_KP_Subtract, spawn, ALSAVOLM},
+    // numpad mpd
+    {MODKEY, XK_KP_Right, spawn, MPDNEXT},
+    {MODKEY, XK_KP_Left, spawn, MPDPREV},
+    {MODKEY, XK_KP_Begin, spawn, MPDTOGG},
+    {MODKEY, XK_KP_Up, spawn, MPDVOLP},
+    {MODKEY, XK_KP_Down, spawn, MPDVOLM},
+    // feh
+    {MODKEY, XK_m, spawn, SHCMD("feh --bg-fill --randomize " CUSTDIR)},
+    {Mod1Mask, XK_m, spawn, SHCMD(HOMEDIR "/.fehb.def")},
+    // dwm
+    {MODKEY, XK_Return, spawn, {.v = termcmd}},               // spawn term
+    {MODKEY | ShiftMask, XK_Return, spawn, {.v = tmuxcmd}},   // spawn term+tmux
+    {MODKEY, XK_KP_Enter, spawn, {.v = termcmd}},             // spawn term (numpad return)
+    {MODKEY | ShiftMask, XK_KP_Enter, spawn, {.v = tmuxcmd}}, // spawn term+tmux (numpad return)
+    {MODKEY | ShiftMask, XK_q, killclient, {0}},              // kill window
+    {MODKEY | ShiftMask, XK_0, tag, {.ui = ~0}},              // move window to ws
+    {MODKEY, XK_j, focusstack, {.i = +1}},                    // focus to stack
+    {MODKEY, XK_k, focusstack, {.i = -1}},                    // focus to master
+    {MODKEY, XK_i, incnmaster, {.i = +1}},                    // move window to master
+    {MODKEY, XK_u, incnmaster, {.i = -1}},                    // remove window from master
+    {MODKEY, XK_l, setmfact, {.f = +0.01}},                   // mfact +0.01
+    {MODKEY, XK_h, setmfact, {.f = -0.01}},                   // mfact -0.01
+    {Mod1Mask, XK_Tab, zoom, {0}},                            // switch focus
+    {MODKEY, XK_space, setlayout, {0}},                       // switch between layouts
+    {MODKEY | ShiftMask, XK_space, togglefloating, {0}},      // toggle floating
+    {MODKEY, XK_f, togglefullscr, {0}},                       // toggle fullscreen
+    {MODKEY, XK_comma, focusmon, {.i = -1}},                  // focus to monitor -1
+    {MODKEY, XK_period, focusmon, {.i = +1}},                 // focus to monitor +1
+    {MODKEY | ShiftMask, XK_comma, tagmon, {.i = -1}},        // move window to monitor -1
+    {MODKEY | ShiftMask, XK_period, tagmon, {.i = +1}},       // move window to monitor +1
+    {MODKEY | ShiftMask, XK_r, quit, {1}},                    // restart dwm
 };
 
 // mouse button binds
-// list of actions: ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, ClkRootWin
 static const Button buttons[] = {
- // alsa
- { ClkStatusText,    MODKEY,           Button2, spawn, ALSAMTOG},
- { ClkStatusText,    MODKEY|ShiftMask, Button2, spawn, ALSACTOG},
- { ClkStatusText,    MODKEY,           Button4, spawn, ALSAVOLP},
- { ClkStatusText,    MODKEY,           Button5, spawn, ALSAVOLM},
- // mpd                                        
- { ClkStatusText,    0, Button1, spawn, MPDNEXT},
- { ClkStatusText,    0, Button3, spawn, MPDPREV},
- { ClkStatusText,    0, Button2, spawn, MPDTOGG},
- { ClkStatusText,    0, Button4, spawn, MPDVOLP},
- { ClkStatusText,    0, Button5, spawn, MPDVOLM},
- //
- { ClkStatusText,    MODKEY, Button3, spawn, AUDMIXER},
- // dwm
- { ClkLtSymbol,      0,      Button1, setlayout,      {0}               },
- { ClkWinTitle,      0,      Button2, zoom,           {0}               },
- { ClkClientWin,     MODKEY, Button1, movemouse,      {0}               },
- { ClkClientWin,     MODKEY, Button2, togglefloating, {0}               },
- { ClkClientWin,     MODKEY, Button3, resizemouse,    {0}               },
- { ClkTagBar,        0,      Button1, view,           {0}               },
- { ClkTagBar,        0,      Button3, toggleview,     {0}               },
- { ClkTagBar,        MODKEY, Button1, tag,            {0}               },
- { ClkTagBar,        MODKEY, Button3, toggletag,      {0}               },
+    // alsa
+    {ClkStatusText, MODKEY, Button2, spawn, ALSAMTOG},
+    {ClkStatusText, MODKEY | ShiftMask, Button2, spawn, ALSACTOG},
+    {ClkStatusText, MODKEY, Button4, spawn, ALSAVOLP},
+    {ClkStatusText, MODKEY, Button5, spawn, ALSAVOLM},
+    // mpd
+    {ClkStatusText, 0, Button1, spawn, MPDNEXT},
+    {ClkStatusText, 0, Button3, spawn, MPDPREV},
+    {ClkStatusText, 0, Button2, spawn, MPDTOGG},
+    {ClkStatusText, 0, Button4, spawn, MPDVOLP},
+    {ClkStatusText, 0, Button5, spawn, MPDVOLM},
+    // mixer
+    {ClkStatusText, MODKEY, Button3, spawn, AUDMIXER},
+    // dwm
+    {ClkLtSymbol, 0, Button1, setlayout, {0}},
+    {ClkWinTitle, 0, Button2, zoom, {0}},
+    {ClkClientWin, MODKEY, Button1, movemouse, {0}},
+    {ClkClientWin, MODKEY, Button2, togglefloating, {0}},
+    {ClkClientWin, MODKEY, Button3, resizemouse, {0}},
+    {ClkTagBar, 0, Button1, view, {0}},
+    {ClkTagBar, 0, Button3, toggleview, {0}},
+    {ClkTagBar, MODKEY, Button1, tag, {0}},
+    {ClkTagBar, MODKEY, Button3, toggletag, {0}},
 };

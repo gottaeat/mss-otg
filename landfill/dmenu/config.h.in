@@ -1,10 +1,10 @@
-static int topbar                        = 0;
-static unsigned int lines                = 0;
-static const char *fonts[]               = { "@fontname@:size=@dmenufontsize@"};
-static const char *prompt                = "exec: ";
-static const char worddelimiters[]       = " ";
+static int topbar = 0;
+static unsigned int lines = 0;
+static const char *fonts[] = {"@fontname@:size=@dmenufontsize@"};
+static const char *prompt = "exec: ";
+static const char worddelimiters[] = " ";
 static const char *colors[SchemeLast][2] = {
- [SchemeNorm] = { "#747474", "#000000" },
- [SchemeSel]  = { "#000000", "#747474" },
- [SchemeOut]  = { "#747474", "#000000" },
+    [SchemeNorm] = {"#747474", "#000000"},
+    [SchemeSel] = {"#000000", "#747474"},
+    [SchemeOut] = {"#747474", "#000000"},
 };
