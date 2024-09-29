@@ -72,7 +72,6 @@ static const int lockfullscreen = 0;    // force focus on fullscreened windows
 
 // terms
 static const char *termcmd[] = {"st", NULL};
-static const char *tmuxcmd[] = {"st", "-e", "tmux", NULL};
 
 // keyboard binds
 static const Key keys[] = {
@@ -104,9 +103,7 @@ static const Key keys[] = {
     {Mod1Mask, XK_m, spawn, SHCMD(HOMEDIR "/.fehb.def")},
     // dwm
     {MODKEY, XK_Return, spawn, {.v = termcmd}},               // spawn term
-    {MODKEY | ShiftMask, XK_Return, spawn, {.v = tmuxcmd}},   // spawn term+tmux
     {MODKEY, XK_KP_Enter, spawn, {.v = termcmd}},             // spawn term (numpad return)
-    {MODKEY | ShiftMask, XK_KP_Enter, spawn, {.v = tmuxcmd}}, // spawn term+tmux (numpad return)
     {MODKEY | ShiftMask, XK_q, killclient, {0}},              // kill window
     {MODKEY | ShiftMask, XK_0, tag, {.ui = ~0}},              // move window to ws
     {MODKEY, XK_j, focusstack, {.i = +1}},                    // focus to stack
