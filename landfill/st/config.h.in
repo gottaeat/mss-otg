@@ -3,7 +3,7 @@ char *termname = "st-256color";
 static char *shell = "/bin/bash";
 
 // alignment
-unsigned int tabspaces = 8;
+unsigned int tabspaces = 4;
 static unsigned int cols = 80;
 static unsigned int rows = 22;
 
