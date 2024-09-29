@@ -16,7 +16,7 @@
  * on each monitor. Each client contains a bit array to indicate the tags of a
  * client.
  *
- * Keys and tagging rules are organized as arrays and defined in dwm_conf.h.
+ * Keys and tagging rules are organized as arrays and defined in config.h.
  *
  * To understand everything else, start reading main().
  */
@@ -282,7 +282,7 @@ static Monitor *mons, *selmon;
 static Window root, wmcheckwin;
 
 /* configuration, allows nested code to access above variables */
-#include "dwm_conf.h"
+#include "config.h"
 
 /* compile-time check if all tags fit into an unsigned int bit array. */
 struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };

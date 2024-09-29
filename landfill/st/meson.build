@@ -1,6 +1,6 @@
 configure_file(
-    input: 'st_conf.h.in',
-    output: 'st_conf.h',
+    input: 'config.h.in',
+    output: 'config.h',
     configuration: conf
 )
 

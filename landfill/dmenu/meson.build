@@ -4,8 +4,8 @@ dmenu_common_args = common_args + [
 ]
 
 configure_file(
-    input: 'dmenu_conf.h.in',
-    output: 'dmenu_conf.h',
+    input: 'config.h.in',
+    output: 'config.h',
     configuration: conf
 )
 

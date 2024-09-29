@@ -1,6 +1,6 @@
 configure_file(
-    input: 'dwm_conf.h.in',
-    output: 'dwm_conf.h',
+    input: 'config.h.in',
+    output: 'config.h',
     configuration: conf
 )
 
