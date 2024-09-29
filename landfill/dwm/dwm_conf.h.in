@@ -127,7 +127,7 @@ static const Key keys[] = {
  { MODKEY,           XK_period,   focusmon,       {.i = +1 }        }, // focus to monitor +1
  { MODKEY|ShiftMask, XK_comma,    tagmon,         {.i = -1 }        }, // move window to monitor -1
  { MODKEY|ShiftMask, XK_period,   tagmon,         {.i = +1 }        }, // move window to monitor +1
- { MODKEY|ShiftMask, XK_r,        quit,           {0}               }, // kill dwm
+ { MODKEY|ShiftMask, XK_r,        quit,           {1}               }, // restart dwm
 };
 
 // mouse button binds
