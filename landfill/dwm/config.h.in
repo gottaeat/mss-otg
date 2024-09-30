@@ -57,7 +57,6 @@ static const char *colors[][3] = {
 static const Rule rules[] = {
     {"feh", NULL, 0, 0, 1, -1},
     {"Pavucontrol", NULL, 0, 0, 1, -1},
-    {"steam", NULL, 0, 0, 1, -1},
     {"Virt-manager", NULL, 0, 0, 1, -1},
 };
 
