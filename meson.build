@@ -13,34 +13,50 @@ project(
 # init config
 conf = configuration_data()
 
-# mssdir
-mssdir = get_option('mssdir')
-conf.set('mssdir', mssdir)
-message('- mssdir    :', mssdir)
-
-# msshomedir
-msshomedir = get_option('msshomedir')
-conf.set('msshomedir', msshomedir)
-message('- msshomedir:', msshomedir)
-
-# setboxes
+# is_linux
+is_linux = host_machine.system() == 'linux'
 setboxes = get_option('setboxes')
-conf.set('setboxes', setboxes)
+landfill = get_option('landfill')
+
+# checks
+if setboxes
+    if not is_linux
+        error('setboxes can be toggled on only on linux')
+    endif
+
+    if not landfill
+        error('setboxes requires landfill')
+    endif
+endif
+
+if landfill
+    if not is_linux
+        error('landfill can only be built on linux')
+    endif
+
+    if not setboxes
+        error('landfill requires setboxes')
+    endif
+endif
+
+# mssdir + msshomedir
+mssdir = get_option('mssdir')
+msshomedir = get_option('msshomedir')
+conf.set('mssdir', mssdir)
+conf.set('msshomedir', msshomedir)
+
+# prints
+message('- mssdir    :', mssdir)
+message('- msshomedir:', msshomedir)
 message('- setboxes  :', setboxes)
 
-# landfil
-if get_option('landfill')
-    message('- landfill  :')
+# landfill
+if landfill
 
     fontname = get_option('fontname')
     dmenufontsize = get_option('dmenufontsize')
     dwmfontsize = get_option('dwmfontsize')
     stfontsize = get_option('stfontsize')
-
-    message(' - font name      :', fontname)
-    message(' - dmenu font size:', dmenufontsize)
-    message(' - dwm font size  :', dwmfontsize)
-    message(' - st font size   :', stfontsize)
 
     conf.set('fontname', fontname)
     conf.set('dmenufontsize', dmenufontsize)
@@ -55,6 +71,12 @@ if get_option('landfill')
         ),
         language : ['c']
     )
+
+    message('- landfill  :')
+    message(' - font name      :', fontname)
+    message(' - dmenu font size:', dmenufontsize)
+    message(' - dwm font size  :', dwmfontsize)
+    message(' - st font size   :', stfontsize)
 
     subdir('landfill')
 else
