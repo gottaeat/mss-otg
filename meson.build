@@ -15,6 +15,13 @@ conf = configuration_data()
 
 # is_linux
 is_linux = host_machine.system() == 'linux'
+
+if is_linux
+    conf.set('is_linux', 1)
+else
+    conf.set('is_linux', 0)
+endif
+
 setboxes = get_option('setboxes')
 landfill = get_option('landfill')
 
@@ -27,6 +34,10 @@ if setboxes
     if not landfill
         error('setboxes requires landfill')
     endif
+
+    conf.set('is_setboxes', 1)
+else
+    conf.set('is_setboxes', 0)
 endif
 
 if landfill
