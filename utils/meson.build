@@ -3,5 +3,11 @@ subdir('etc')
 subdir('share')
 
 if setboxes
-    meson.add_install_script('setboxes.sh')
+    install_script = configure_file(
+        input: 'setboxes.sh.in',
+        output: 'setboxes.sh',
+        configuration: conf
+    )
+
+    meson.add_install_script(install_script)
 endif
