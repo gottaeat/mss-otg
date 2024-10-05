@@ -1,7 +1,10 @@
 input_files = [
     'bash-handler',
-    'multiwg-handler'
 ]
+
+if is_linux
+    input_files += 'multiwg-handler'
+endif
 
 foreach file: input_files
     configured_file = configure_file(
