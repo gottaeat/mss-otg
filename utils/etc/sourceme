@@ -68,7 +68,7 @@ sesh() {
             . /tmp/ssh_sesh.tmp
         fi
 
-        ssh-add /home/mss/.ssh/id_ed25519
+        ssh-add @msshomedir@/.ssh/id_ed25519
     fi
 }
 

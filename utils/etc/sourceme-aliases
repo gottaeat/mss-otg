@@ -12,14 +12,14 @@ alias cde="cd /mnt/mss/externalstuff"
 alias cdg="cd /mnt/mss/stuff/techy-bits/git"
 alias cdl="cd /mnt/mss/stuff/media/lewd"
 alias cdm="cd /mnt/mss/stuff/media/music"
-alias cdr="cd /mss/repo"
+alias cdr="cd @mssdir@/repo"
 alias cds="cd /mnt/mss/stuff"
-alias cdw="cd /mss/work"
-alias cdt1="cd /mss/work/table"
-alias cdt2="cd /mss/work/table2"
-alias cdt3="cd /mss/work/table3"
-alias cdt4="cd /mss/work/table4"
-alias cdt5="cd /mss/work/table5"
+alias cdw="cd @mssdir@/work"
+alias cdt1="cd @mssdir@/work/table"
+alias cdt2="cd @mssdir@/work/table2"
+alias cdt3="cd @mssdir@/work/table3"
+alias cdt4="cd @mssdir@/work/table4"
+alias cdt5="cd @mssdir@/work/table5"
 
 # - - tmux - - #
 alias tmux="tmux -2"
@@ -31,7 +31,7 @@ alias gl="git log --oneline"
 alias gcd1="git clone --depth=1 --recursive --shallow-submodules"
 
 # - - media - - #
-alias atog="pactl set-sink-mute @DEFAULT_SINK@ toggle"
+alias atog="pactl set-sink-mute \@DEFAULT_SINK\@ toggle"
 alias feh="feh -d --scale-down --auto-zoom"
 
 # - - verbosity - - #
@@ -42,4 +42,4 @@ alias mkdir="mkdir -pv"
 alias mount="mount -v"
 
 # - - legacy bloat - - #
-alias a2="/mss/bin/cb"
+alias a2="@mssdir@/bin/cb"
