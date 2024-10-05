@@ -15,8 +15,8 @@
     }
 
 // paths
-#define HOMEDIR "/home/mss"
-#define SCRIPTDIR "/mss/bin"
+#define HOMEDIR "@msshomedir@"
+#define SCRIPTDIR "@mssdir@/bin"
 #define CUSTDIR "/mnt/mss/stuff/media/wallpapers"
 
 // media control shortcuts
