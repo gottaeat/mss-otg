@@ -25,6 +25,7 @@ message('- msshomedir:', msshomedir)
 
 # setboxes
 setboxes = get_option('setboxes')
+conf.set('setboxes', setboxes)
 message('- setboxes  :', setboxes)
 
 # landfil
