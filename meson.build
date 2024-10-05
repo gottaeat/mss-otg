@@ -10,12 +10,26 @@ project(
     ]
 )
 
+# init config
 conf = configuration_data()
-setboxes = get_option('setboxes')
-message('- setboxes:', setboxes)
 
+# mssdir
+mssdir = get_option('mssdir')
+conf.set('mssdir', mssdir)
+message('- mssdir    :', mssdir)
+
+# msshomedir
+msshomedir = get_option('msshomedir')
+conf.set('msshomedir', msshomedir)
+message('- msshomedir:', msshomedir)
+
+# setboxes
+setboxes = get_option('setboxes')
+message('- setboxes  :', setboxes)
+
+# landfil
 if get_option('landfill')
-    message('- landfill:')
+    message('- landfill  :')
 
     fontname = get_option('fontname')
     dmenufontsize = get_option('dmenufontsize')
@@ -43,7 +57,8 @@ if get_option('landfill')
 
     subdir('landfill')
 else
-    message('- landfill: not building')
+    message('- landfill  : not building')
 endif
 
+# utils
 subdir('utils')
