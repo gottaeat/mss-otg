@@ -13,15 +13,23 @@ append_path(){
     esac
 }
 
-PATH="@mssdir@/bin:${PATH}"
-append_path '/usr/local/sbin'
-append_path '/usr/local/bin'
-append_path '/usr/bin'
+_OS_TYPE="$(uname -s)"
+
+if [ "${_OS_TYPE}" == "Darwin" ] && [ -x "/usr/libexec/path_helper" ]
+    then
+        eval `/usr/libexec/path_helper -s`
+        PATH="@mssdir@/bin:${PATH}"
+    else
+        PATH="@mssdir@/bin:${PATH}"
+        append_path '/usr/local/sbin'
+        append_path '/usr/local/bin'
+        append_path '/usr/bin'
+fi
 
 export PATH
 
 # - - don't expose - - #
-unset TERMCAP MANPATH
+unset TERMCAP MANPATH _OS_TYPE
 
 # - - bash specific - - #
 if [ ! -z "${BASH}" ]; then
