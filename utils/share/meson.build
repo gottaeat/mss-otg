@@ -1,9 +1,22 @@
-install_data(
-    files(
-        'bash-handler',
-        'multiwg-handler'
-    ),
-    install_dir: '/mss/share'
+input_files = [
+    'bash-handler',
+    'multiwg-handler'
+]
+
+foreach file: input_files
+    configured_file = configure_file(
+        input: file,
+        output: file,
+        configuration : conf,
+        install: true,
+        install_dir: mssdir / 'share'
+    )
+endforeach
+
+install_script = configure_file(
+    input: 'install_symlinks.sh.in',
+    output: 'install_symlinks.sh',
+    configuration: conf
 )
 
-meson.add_install_script('install_symlinks.sh')
+meson.add_install_script(install_script)
