@@ -1,3 +1,5 @@
+option('mssdir', type: 'string', value: '/opt/mss')
+option('msshomedir', type: 'string', value: '/home/mss')
 option('landfill', type: 'boolean', value: false)
 option('setboxes', type: 'boolean', value: false)
 option('fontname', type: 'string', value: 'Terminus')
