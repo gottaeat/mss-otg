@@ -1,13 +1,15 @@
 # vim: set ft=sh:
 
 # - - c tooling - - #
-CPPFLAGS="-DNDEBUG -D_FORTIFY_SOURCE=2"
-CFLAGS="${CPPFLAGS} -g0 -s -w -pipe -O3 -march=x86-64 -mtune=generic"
-CFLAGS="${CFLAGS} -fcommon -fstack-protector-strong"
-CXXFLAGS="${CFLAGS}"
-LDFLAGS="${CFLAGS} -Wl,--as-needed,--sort-common,-z,relro,-z,now,--gc-sections,-O3"
+if [ "${OTG_IS_LINUX}" -eq 1 ]
+    CPPFLAGS="-DNDEBUG -D_FORTIFY_SOURCE=2"
+    CFLAGS="${CPPFLAGS} -g0 -s -w -pipe -O3 -march=x86-64 -mtune=generic"
+    CFLAGS="${CFLAGS} -fcommon -fstack-protector-strong"
+    CXXFLAGS="${CFLAGS}"
+    LDFLAGS="${CFLAGS} -Wl,--as-needed,--sort-common,-z,relro,-z,now,--gc-sections,-O3"
 
-export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS
+    export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS
+fi
 
 # - - build systems - - #
 MAKEFLAGS="-j$(nproc) V=1"
@@ -16,8 +18,10 @@ SAMUFLAGS="-j$(nproc) -v"
 export MAKEFLAGS SAMUFLAGS
 
 # - - host spec - - #
-CARCH="x86_64"
-CHOST="${CARCH}-pc-linux-gnu"
-CBUILD="${CHOST}"
+if [ "${OTG_IS_LINUX}" -eq 1 ]
+    CARCH="x86_64"
+    CHOST="${CARCH}-pc-linux-gnu"
+    CBUILD="${CHOST}"
 
-export CARCH CHOST CBUILD
+    export CARCH CHOST CBUILD
+fi
