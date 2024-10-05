@@ -1,5 +1,5 @@
 #!/bin/sh
-. /mss/etc/funcs
+. @mssdir@/etc/funcs
 
 for k in *; do
     aprint "${cb_red}entering ${cb_whi}${k}${c_res}."

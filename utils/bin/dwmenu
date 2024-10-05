@@ -6,6 +6,6 @@ killdwm(){
 
 case "$(printf "kill-dwm\nchromium\nxkill\n" | dmenu -b -p "take ya pick:")" in
     kill-dwm) killdwm ;;
-    chromium) /mss/bin/chromium ;;
+    chromium) @mssdir@/bin/chromium ;;
     xkill) xkill ;;
 esac

@@ -1,7 +1,7 @@
 #!/bin/sh
 export DISPLAY=:0
 
-xkbcomp -w 0 /home/mss/xkbmap "${DISPLAY}"
+xkbcomp -w 0 @msshomedir@/xkbmap "${DISPLAY}"
 
 setxkbmap \
     -option grp:switch,grp:alt_shift_toggle \

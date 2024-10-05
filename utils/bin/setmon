@@ -1,5 +1,5 @@
 #!/bin/sh
-. /mss/etc/funcs
+. @mssdir@/etc/funcs
 
 if [ ! "$(xrandr | awk '/VGA-1/{print $2}')" = "connected" ]
     then
@@ -14,7 +14,7 @@ if [ ! "$(xrandr | awk '/VGA-1/{print $2}')" = "connected" ]
                 xrandr --output VGA-1 --primary --auto
                 xrandr --output LVDS-1 --right-of VGA-1
                 setxkeeb
-                [ -f /home/mss/.fehbg ] && /home/mss/.fehbg
+                [ -f @msshomedir@/.fehbg ] && @msshomedir@/.fehbg
             else
                 xrandr --output VGA-1 --noprimary
                 xrandr --output VGA-1 --off
