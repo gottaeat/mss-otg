@@ -42,7 +42,7 @@ alias gl="git log --oneline"
 alias gcd1="git clone --depth=1 --recursive --shallow-submodules"
 
 # - - media - - #
-if [ "${OTG_IS_SETBOXES}" -eq 1 ]
+if [ "${OTG_IS_SETBOXES}" -eq 1 ]; then
     alias atog="pactl set-sink-mute \@DEFAULT_SINK\@ toggle"
     alias feh="feh -d --scale-down --auto-zoom"
 fi
