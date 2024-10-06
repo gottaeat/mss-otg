@@ -1,7 +1,7 @@
 # vim: set ft=sh:
 
 # - - c tooling - - #
-if [ "${OTG_IS_LINUX}" -eq 1 ]
+if [ "${OTG_IS_LINUX}" -eq 1 ]; then
     CPPFLAGS="-DNDEBUG -D_FORTIFY_SOURCE=2"
     CFLAGS="${CPPFLAGS} -g0 -s -w -pipe -O3 -march=x86-64 -mtune=generic"
     CFLAGS="${CFLAGS} -fcommon -fstack-protector-strong"
@@ -12,13 +12,20 @@ if [ "${OTG_IS_LINUX}" -eq 1 ]
 fi
 
 # - - build systems - - #
-MAKEFLAGS="-j$(nproc) V=1"
-SAMUFLAGS="-j$(nproc) -v"
+if [ "${OTG_IS_LINUX}" -eq 1 ];
+    then
+        _NR_PROC="$(nproc)"
+    else
+        _NR_PROC="$(sysctl -n hw.physicalcpu)"
+fi
+
+MAKEFLAGS="-j${_NR_PROC} V=1"
+SAMUFLAGS="-j${_NR_PROC} -v"
 
 export MAKEFLAGS SAMUFLAGS
 
 # - - host spec - - #
-if [ "${OTG_IS_LINUX}" -eq 1 ]
+if [ "${OTG_IS_LINUX}" -eq 1 ]; then
     CARCH="x86_64"
     CHOST="${CARCH}-pc-linux-gnu"
     CBUILD="${CHOST}"
