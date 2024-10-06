@@ -1,5 +1,9 @@
 # vim: set ft=sh:
 
+if [ -z "${OTG_IS_LINUX}" ] || [ -z "${OTG_IS_SETBOXES}" ]; then
+    . @mssdir@/etc/sourceme
+fi
+
 # - - ls + grep - - #
 if [ "${OTG_IS_LINUX}" -eq 1 ]
     then
