@@ -31,10 +31,6 @@ if setboxes
         error('setboxes can be toggled on only on linux')
     endif
 
-    if not landfill
-        error('setboxes requires landfill')
-    endif
-
     conf.set('is_setboxes', 1)
 else
     conf.set('is_setboxes', 0)
@@ -63,7 +59,6 @@ message('- setboxes  :', setboxes)
 
 # landfill
 if landfill
-
     fontname = get_option('fontname')
     dmenufontsize = get_option('dmenufontsize')
     dwmfontsize = get_option('dwmfontsize')
