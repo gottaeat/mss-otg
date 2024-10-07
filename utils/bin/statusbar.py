@@ -6,6 +6,7 @@
 import argparse
 import json
 import os
+import platform
 import re
 import socket
 import ssl
@@ -420,9 +421,13 @@ if __name__ == "__main__":
         p_set, p_reset = "#[fg=white bg=black]", "#[default]"
         p_block = f"{p_reset} {p_set}"
 
-        finprint = f"{p_set} {MPD(args.host, args.port).run()} {p_block} "
-        finprint += f"{get_date()} {p_block} "
-        finprint += f"{get_loadavg()} {get_mem()} {p_block} "
-        finprint += f"{get_battery()} {p_reset} "
+        finprint = f"{p_set} "
+        if platform.system() == "Linux":
+            finprint += f"{MPD(args.host, args.port).run()} {p_block} "
+            finprint += f"{get_date()} {p_block} "
+            finprint += f"{get_loadavg()} {get_mem()} {p_block} "
+            finprint += f"{get_battery()}"
+        else:
+            finprint += f"{get_date()} {p_block} {get_loadavg()}"
 
-        print(finprint)
+        print(f"{finprint} {p_reset} ")
