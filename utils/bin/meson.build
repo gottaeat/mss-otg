@@ -8,6 +8,7 @@ input_files = [
     'getip.py',
     'ldir',
     'ossl',
+    'statusbar.py',
     'syncboi',
     'weather.py',
     'webm2mp3'
@@ -29,7 +30,6 @@ input_files_linux = [
     'fetch.py',
     'setcake.py',
     'setgov',
-    'statusbar.py',
     'suspendtodisk',
     'ttygrab'
 ]
