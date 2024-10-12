@@ -1,15 +1,17 @@
 #!/usr/bin/python3
-# pylint: disable=missing-module-docstring,missing-class-docstring,missing-function-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
+# pylint: disable=missing-module-docstring
 # pylint: disable=too-few-public-methods
-# pylint: disable=invalid-name
-# pylint: disable=redefined-outer-name
 
-import argparse
+import ipaddress
 import json
 import socket
 import sys
 import urllib.parse
 import urllib.request
+
+from threading import Thread
 
 
 class Colors:
@@ -23,88 +25,102 @@ class Colors:
         pass
 
 
-class GetIP:
-    def __init__(self, ip=None):
-        self.ip = ip
-        self.msg = None
-        self.ip_parsed = None
+c = Colors()
+
+
+class QueryAPI:
+    def __init__(self, host=None):
+        self.host = host
+        self.msg = ""
 
     def _collect(self):
+        # query api
         req = "https://ipinfo.io"
 
-        if self.ip:
-            req += f"/{self.ip}"
+        if self.host:
+            req += f"/{self.host}"
 
         try:
             with urllib.request.urlopen(req) as f:
                 data = f.read().decode()
         except urllib.error.HTTPError:
-            self.ip_parsed = (False, "GET failed")
+            self.msg += f" {c.C_WHI}→ {c.C_RES}GET failed"
             return
         except urllib.error.URLError:
-            self.ip_parsed = (False, "bad URL")
+            self.msg += f" {c.C_WHI}→ {c.C_RES}bad URL"
             return
 
+        # load json
         try:
-            self.ip_parsed = (True, json.loads(data))
-        except KeyError:
-            self.ip_parsed = (False, "parse failed")
+            host_json = json.loads(data)
+        except:  # pylint: disable=bare-except
+            self.msg += f" {c.C_WHI}→ {c.C_RES}parse failed"
             return
 
-    def _format(self):
-        data = self.ip_parsed[1]
-
+        # format
         max_len = 0
-        for key in data.keys():
-            if len(key) > max_len:
-                max_len = len(key)
+        for key in host_json.keys():
+            max_len = max(max_len, len(key))
 
-        c = Colors()
-        msg = ""
-
-        for key, val in data.items():
-            if key == "readme":
+        for key, val in host_json.items():
+            if key == "readme" and "ipinfo" in req:
                 continue
-            msg += f" {c.C_WHI}→ {c.C_RED}{key :<{max_len}}{c.C_BLU}:{c.C_RES} {val}\n"
 
-        return msg.strip("\n")
+            self.msg += f" {c.C_WHI}→ {c.C_RED}{key :<{max_len}}"
+            self.msg += f"{c.C_BLU}:{c.C_RES} {val}\n"
 
     def run(self):
         self._collect()
+        print(self.msg, end="")
 
-        if not self.ip_parsed[0]:
-            self.msg = self.ip_parsed[1]
+
+class GetAPI:
+    def __init__(self):
+        self.hosts = sys.argv[1:]
+        self.hosts_to_query = {}
+
+    def run(self):  # pylint: disable=inconsistent-return-statements
+        if not self.hosts:
+            qa = QueryAPI()
+            qa.msg = f"   {c.C_YEL}self query{c.C_RES}\n"
+            return qa.run()
+
+        self.query()
+
+    def query(self):
+        host_threads = []
+        for host in self.hosts:
+            host_thread = Thread(target=self.host_lookup, args=(host,))
+            host_threads.append(host_thread)
+
+        for host_thread in host_threads:
+            host_thread.start()
+
+        for host_thread in host_threads:
+            host_thread.join()
+
+        if not self.hosts_to_query:
             return
 
-        self.msg = self._format()
+        for key, val in self.hosts_to_query.items():
+            qa = QueryAPI(val)
+            qa.msg = f"   {c.C_YEL}{key}{c.C_RES}\n"
+            host_query_thread = Thread(target=qa.run)
+            host_query_thread.start()
+
+    def host_lookup(self, host):
+        try:
+            ipaddress.ip_address(host)
+            self.hosts_to_query[host] = host
+        except ValueError:
+            try:
+                host_ip = socket.gethostbyname(host)
+                self.hosts_to_query[host] = host_ip
+            except socket.gaierror:
+                msg = f"   {c.C_YEL}{host}{c.C_RES}\n"
+                msg += f" {c.C_WHI}→ {c.C_RES}not an ip or failed to resolve"
+                print(msg)
 
 
 if __name__ == "__main__":
-    PARSER_DESC = "Get IP information from ipinfo.io."
-    PARSER_IP_DESC = "List of IP addresses to be queried."
-    parser = argparse.ArgumentParser(description=PARSER_DESC)
-    parser.add_argument(
-        "--ip", nargs="+", type=str, required=False, help=PARSER_IP_DESC
-    )
-
-    args = parser.parse_args()
-
-    want_ip = args.ip
-
-    c = Colors()
-
-    if want_ip:
-        for ip in want_ip:
-            print(f"   {c.C_YEL}{ip}")
-
-            getip = GetIP(socket.gethostbyname(ip))
-            getip.run()
-
-            print(f"{getip.msg}\n")
-
-        sys.stdout.write("\x1b[1A\x1b[2K")
-    else:
-        getip = GetIP()
-        getip.run()
-
-        print(getip.msg)
+    GetAPI().run()
