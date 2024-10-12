@@ -1,7 +1,7 @@
 project(
     'otg',
     ['c'],
-    version: '1.2',
+    version: '1.3',
     license: 'MIT',
     default_options: [
         'buildtype=plain',
