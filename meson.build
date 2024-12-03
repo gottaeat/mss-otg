@@ -60,14 +60,10 @@ message('- setboxes  :', setboxes)
 # landfill
 if landfill
     fontname = get_option('fontname')
-    dmenufontsize = get_option('dmenufontsize')
-    dwmfontsize = get_option('dwmfontsize')
-    stfontsize = get_option('stfontsize')
+    fontsize = get_option('fontsize')
 
     conf.set('fontname', fontname)
-    conf.set('dmenufontsize', dmenufontsize)
-    conf.set('dwmfontsize', dwmfontsize)
-    conf.set('stfontsize', stfontsize)
+    conf.set('fontsize', fontsize)
 
     cc = meson.get_compiler('c')
 
@@ -79,10 +75,8 @@ if landfill
     )
 
     message('- landfill  :')
-    message(' - font name      :', fontname)
-    message(' - dmenu font size:', dmenufontsize)
-    message(' - dwm font size  :', dwmfontsize)
-    message(' - st font size   :', stfontsize)
+    message(' - font name :', fontname)
+    message(' - font size :', fontsize)
 
     subdir('landfill')
 else
