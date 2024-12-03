@@ -1,7 +1,5 @@
 conf.set('fontname', get_option('fontname'))
-conf.set('dmenufontsize', get_option('dmenufontsize'))
-conf.set('dwmfontsize', get_option('dwmfontsize'))
-conf.set('stfontsize', get_option('stfontsize'))
+conf.set('fontsize', get_option('fontsize'))
 
 deps = {
     'fontconfig': dependency('fontconfig'),

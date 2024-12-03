@@ -8,7 +8,7 @@ static unsigned int cols = 80;
 static unsigned int rows = 22;
 
 // font
-static char *font = "@fontname@:size=@stfontsize@";
+static char *font = "@fontname@:size=@fontsize@";
 static float cwscale = 1.0f;
 static float chscale = 1.0f;
 
