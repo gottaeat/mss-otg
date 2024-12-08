@@ -70,7 +70,7 @@ static const int resizehints = 0;       // do not respect resize hints
 static const int lockfullscreen = 0;    // force focus on fullscreened windows
 
 // terms
-static const char *termcmd[] = {"st", NULL};
+static const char *termcmd[] = {"@dwm_terminal@", NULL};
 
 // keyboard binds
 static const Key keys[] = {

@@ -53,6 +53,14 @@ else
     endif
 endif
 
+if build_dwm
+    if build_st
+        conf.set('dwm_terminal', 'st')
+    else
+        conf.set('dwm_terminal', 'alacritty')
+    endif
+endif
+
 # mssdir + msshomedir
 mssdir = get_option('mssdir')
 msshomedir = get_option('msshomedir')
