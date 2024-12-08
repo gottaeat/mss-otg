@@ -19,6 +19,14 @@ common_args = [
     '-DXINERAMA'
 ]
 
-subdir('dmenu')
-subdir('dwm')
-subdir('st')
+if build_dmenu
+    subdir('dmenu')
+endif
+
+if build_dwm
+    subdir('dwm')
+endif
+
+if build_st
+    subdir('st')
+endif
