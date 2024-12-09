@@ -5,18 +5,22 @@ if [ -z "${OTG_IS_LINUX}" ] || [ -z "${OTG_IS_SETBOXES}" ]; then
 fi
 
 # - - ls + grep - - #
-if [ "${OTG_IS_LINUX}" -eq 1 ]
+OTG_LS_PATH="$(which ls)"
+OTG_LS_BASE="-AFHhp --color=auto"
+
+if "${OTG_LS_PATH}" --version >/dev/null 2>&1
     then
-        alias ls="/bin/ls -AFHhp --group-directories-first --color=auto"
-        alias l="/bin/ls -AFHhp --group-directories-first --color=auto"
-        alias ll="/bin/ls -AFHhp --group-directories-first --color=auto -w1"
-        alias lll="/bin/ls -AFHhp --group-directories-first --color=auto -l"
+        OTG_LS_BASE="${OTG_LS_BASE} --group-directories-first"
+        alias lll="${OTG_LS_PATH} ${OTG_LS_BASE} -l"
     else
-        alias ls="/bin/ls -AFHhp --color=auto"
-        alias l="/bin/ls -AFHhp --color=auto"
-        alias ll="/bin/ls -AFHhp --color=auto -w1"
-        alias lll="/bin/ls -AFHhpt --color=auto -l"
+        alias lll="${OTG_LS_PATH} ${OTG_LS_BASE} -tl"
 fi
+
+alias ls="${OTG_LS_PATH} ${OTG_LS_BASE}"
+alias l="${OTG_LS_PATH} ${OTG_LS_BASE}"
+alias ll="${OTG_LS_PATH} ${OTG_LS_BASE} -w1"
+
+unset OTG_LS_PATH OTG_LS_BASE
 
 alias grep="grep --color=auto"
 
