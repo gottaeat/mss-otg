@@ -22,6 +22,20 @@ if [ "${OTG_IS_SETBOXES}" -eq 1 ]; then
     export LIBVIRT_DEFAULT_URI="qemu:///system"
 fi
 
+# - - brew - - #
+if [ -f "/opt/homebrew/bin/brew" ]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+
+    BREW_PREFIX="$(brew --prefix)"
+    for bindir in "${BREW_PREFIX}/opt/"*"/libexec/gnubin"; do
+        export PATH="${bindir}:${PATH}"
+    done
+
+    for mandir in "${BREW_PREFIX}/opt/"*"/libexec/gnuman"; do
+        export MANPATH="${mandir}:$MANPATH"
+    done
+fi
+
 # - - colors - - #
 c_res="\033[0;39m"
 cl_blk="\033[0;30m"
