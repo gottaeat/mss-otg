@@ -14,19 +14,8 @@ input_files = [
     'webm2mp3'
 ]
 
-input_files_landfill = [
-    'chromium',
-    'comptoggle',
-    'dwmenu',
-    'maimclip',
-    'maimcrop',
-    'maimscrot',
-    'setbright',
-    'setmon',
-    'setxkeeb'
-]
-
 input_files_linux = [
+    'chromium',
     'fetch.py',
     'setcake.py',
     'setgov',
@@ -37,10 +26,6 @@ input_files_linux = [
 # merge
 if is_linux
   input_files += input_files_linux
-endif
-
-if landfill
-  input_files += input_files_landfill
 endif
 
 # template
