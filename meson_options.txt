@@ -3,10 +3,3 @@ option('mssdir', type: 'string', value: '/opt/mss')
 option('msshomedir', type: 'string', value: '/home/mss')
 # whether we're building for a box deployed by setboxes
 option('setboxes', type: 'boolean', value: false)
-# landfill suite
-option('landfill', type: 'boolean', value: false)
-option('dmenu', type: 'boolean', value: false)
-option('dwm', type: 'boolean', value: false)
-option('st', type: 'boolean', value: false)
-option('fontname', type: 'string', value: 'Terminus')
-option('fontsize', type: 'integer', value: 10)
