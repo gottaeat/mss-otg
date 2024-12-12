@@ -19,96 +19,96 @@ from threading import Thread
 
 
 # mpd
-class MPD:
-    def __init__(self, mpd_host, mpd_port):
-        self._address = (socket.gethostbyname(mpd_host), mpd_port)
-
-    def _check_status(self):
-        try:
-            check = socket.socket()
-            check.connect(self._address)
-        except ConnectionRefusedError:
-            return (False, "dead")
-
-        mpd_check = check.recv(1024).decode()
-        if "OK MPD" in mpd_check:
-            status = (True, "alive")
-        else:
-            status = (False, "not MPD")
-
-        check.close()
-        return status
-
-    def _query(self, query):
-        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client.connect(self._address)
-        client.send(query.encode())
-
-        sockfile = client.makefile(mode="r")
-
-        raw = ""
-        while True:
-            line = sockfile.readline()
-
-            if "OK MPD " in line:
-                continue
-            if line == "\r\n":
-                continue
-            if "OK\n" in line:
-                break
-
-            raw += line
-
-        client.close()
-
-        querylist = raw.split("\n")
-        querylist.remove("")
-
-        return querylist
-
-    @staticmethod
-    def _parse(response):
-        final = {}
-        for line in response:
-            data = line.split(":", maxsplit=1)
-            final[data[0]] = data[1].lstrip()
-
-        return final
-
-    def run(self):
-        daemon_status = self._check_status()
-
-        if not daemon_status[0]:
-            return daemon_status[1]
-
-        status = self._parse(self._query("status\n"))
-
-        if status["state"] == "stop":
-            return "idle"
-
-        cursong = self._parse(self._query("currentsong\n"))
-
-        if len(cursong) == 0:
-            return "idle"
-
-        songname = cursong.get("Title", re.sub(r"^.*\/|\.[^.]*$", "", cursong["file"]))
-
-        if len(songname) >= 20:
-            songname = songname[0:17] + "..."
-
-        if status["state"] == "pause":
-            indic = "[#]"
-        else:
-            cur_dur = float(cursong["duration"]) - float(status["elapsed"])
-
-            if cur_dur >= 3600:
-                timeshit = "%H:%M:%S"
-            else:
-                timeshit = "%M:%S"
-
-            indic = f"[{time.strftime(timeshit, time.gmtime(cur_dur))}]"
-
-        return f"{indic} {songname}"
+# class MPD:
+#    def __init__(self, mpd_host, mpd_port):
+#        self._address = (socket.gethostbyname(mpd_host), mpd_port)
+#
+#    def _check_status(self):
+#        try:
+#            check = socket.socket()
+#            check.connect(self._address)
+#        except ConnectionRefusedError:
+#            return (False, "dead")
+#
+#        mpd_check = check.recv(1024).decode()
+#        if "OK MPD" in mpd_check:
+#            status = (True, "alive")
+#        else:
+#            status = (False, "not MPD")
+#
+#        check.close()
+#        return status
+#
+#    def _query(self, query):
+#        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#        client.connect(self._address)
+#        client.send(query.encode())
+#
+#        sockfile = client.makefile(mode="r")
+#
+#        raw = ""
+#        while True:
+#            line = sockfile.readline()
+#
+#            if "OK MPD " in line:
+#                continue
+#            if line == "\r\n":
+#                continue
+#            if "OK\n" in line:
+#                break
+#
+#            raw += line
+#
+#        client.close()
+#
+#        querylist = raw.split("\n")
+#        querylist.remove("")
+#
+#        return querylist
+#
+#    @staticmethod
+#    def _parse(response):
+#        final = {}
+#        for line in response:
+#            data = line.split(":", maxsplit=1)
+#            final[data[0]] = data[1].lstrip()
+#
+#        return final
+#
+#    def run(self):
+#        daemon_status = self._check_status()
+#
+#        if not daemon_status[0]:
+#            return daemon_status[1]
+#
+#        status = self._parse(self._query("status\n"))
+#
+#        if status["state"] == "stop":
+#            return "idle"
+#
+#        cursong = self._parse(self._query("currentsong\n"))
+#
+#        if len(cursong) == 0:
+#            return "idle"
+#
+#        songname = cursong.get("Title", re.sub(r"^.*\/|\.[^.]*$", "", cursong["file"]))
+#
+#        if len(songname) >= 20:
+#            songname = songname[0:17] + "..."
+#
+#        if status["state"] == "pause":
+#            indic = "[#]"
+#        else:
+#            cur_dur = float(cursong["duration"]) - float(status["elapsed"])
+#
+#            if cur_dur >= 3600:
+#                timeshit = "%H:%M:%S"
+#            else:
+#                timeshit = "%M:%S"
+#
+#            indic = f"[{time.strftime(timeshit, time.gmtime(cur_dur))}]"
+#
+#        return f"{indic} {songname}"
 
 
 # scrape
@@ -407,7 +407,7 @@ if __name__ == "__main__":
                 finprint += f"/{get_battery()} {get_ibmfan()}"
 
             finprint += f" ¦ {scrape.mgm} ¦ {scrape.yahoo}/{scrape.binance}"
-            finprint += f" ¦ {MPD(args.host, args.port).run()}"
+            #           finprint += f" ¦ {MPD(args.host, args.port).run()}"
             finprint += f" ¦ {get_date()}"
             finprint += '"'
 
