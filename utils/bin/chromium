@@ -1,0 +1,21 @@
+#!/bin/sh
+export LD_LIBRARY_PATH=/mnt/mss/stuff/techy-bits/lib
+
+if [ -f "/usr/lib/chromium/chromium" ]
+    then
+        exec /usr/lib/chromium/chromium \
+            --animation-duration-scale=0 \
+            --disable-smooth-scrolling \
+            --enable-features=CSSColorSchemeUARendering \
+            --enable-features=WebUIDarkMode \
+            --force-dark-mode \
+            --wm-window-animations-disabled \
+            --no-default-browser-check \
+            --disk-cache-dir=/dev/null \
+            --disk-cache-size=1 \
+            --enable-gpu-rasterization \
+            --enable-features=VaapiVideoDecode \
+            "${@}"
+    else
+        exec firefox
+fi
