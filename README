@@ -1,12 +1,7 @@
 mss-otg
 =======
-├ landfill/[1] -> modified versions of dwm, st and dmenu cobbled together
-│                 under a single meson project as an attempt to create a
-│                 desktop environment type of thing.
 ├ misc/        -> miscellaneous build scripts.
 └ utils/
   ├ bin/       -> assortment of scripts.
   ├ etc/       -> files complementing the scripts in ../bin/ and shells.
   └ share/     -> handlers for systemd and others.
-
-[1] dwm, st and dmenu are licensed under MIT.
