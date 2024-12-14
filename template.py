@@ -223,6 +223,22 @@ class TemplateOTG:
                 os.path.join(self.context["prefix"], "share", "bash-handler"), path
             )
 
+    def _fixperms(self):
+        chmod_list = []
+        for root, dirs, files in os.walk("./utils"):
+            for file in files:
+                file_path = os.path.join(root, file)
+
+                if os.access(file_path, os.X_OK):
+                    realpath = os.path.join(
+                        self.context["prefix"],
+                        os.path.relpath(file_path, start="./utils"),
+                    )
+
+                    if os.path.exists(realpath):
+                        self.logger.info("perms    %s", realpath)
+                        os.chmod(realpath, os.stat(realpath).st_mode | 0o111)
+
     def run(self):
         self._set_root_logger()
         self.logger = logging.getLogger("OTG")
@@ -233,6 +249,7 @@ class TemplateOTG:
         self._mkdir()
         self._render()
         self._symlinks()
+        self._fixperms()
 
 
 if __name__ == "__main__":
