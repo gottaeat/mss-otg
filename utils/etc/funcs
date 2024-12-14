@@ -1,5 +1,5 @@
 #!/bin/sh
-. @mssdir@/etc/sourceme
+. {{ prefix }}/etc/sourceme
 
 # - - prompts - - #
 sbefore="   "
