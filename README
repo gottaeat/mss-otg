@@ -1,7 +1,0 @@
-mss-otg
-=======
-├ misc/        -> miscellaneous build scripts.
-└ utils/
-  ├ bin/       -> assortment of scripts.
-  ├ etc/       -> files complementing the scripts in ../bin/ and shells.
-  └ share/     -> handlers for systemd and others.
