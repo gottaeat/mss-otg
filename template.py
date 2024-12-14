@@ -11,6 +11,7 @@ import argparse
 import logging
 import os
 import platform
+import shutil
 import sys
 
 import jinja2
@@ -145,6 +146,27 @@ class TemplateOTG:
             "platform": platform.system(),
         }
 
+    def _mkdir(self):
+        for directory in ["bin", "etc", "share"]:
+            path = os.path.join(self.context["prefix"], directory)
+
+            self.logger.info("mkdir    %s", path)
+
+            try:
+                if os.path.exists(path):
+                    if os.access(path, os.W_OK):
+                        try:
+                            self.logger.warning("mkdir    %s: exists, removing", path)
+                            shutil.rmtree(path)
+                        except:
+                            self.logger.exception("mkdir    %s: can't remove dir", path)
+                    else:
+                        self.logger.error("mkdir    %s: can't create dir", path)
+
+                os.makedirs(path, mode=0o755)
+            except:
+                self.logger.exception("mkdir    %s: can't create dir", path)
+
     def _render(self):
         template_loader = jinja2.FileSystemLoader("./utils")
         template_list = template_loader.list_templates()
@@ -208,6 +230,7 @@ class TemplateOTG:
         self._parse_args()
 
         self._prompt()
+        self._mkdir()
         self._render()
         self._symlinks()
 
