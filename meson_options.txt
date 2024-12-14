@@ -1,5 +1,0 @@
-# paths
-option('mssdir', type: 'string', value: '/opt/mss')
-option('msshomedir', type: 'string', value: '/home/mss')
-# whether we're building for a box deployed by setboxes
-option('setboxes', type: 'boolean', value: false)

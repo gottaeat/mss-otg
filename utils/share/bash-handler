@@ -13,23 +13,21 @@ append_path(){
     esac
 }
 
-_OS_TYPE="$(uname -s)"
-
-if [ "${_OS_TYPE}" == "Darwin" ] && [ -x "/usr/libexec/path_helper" ]
-    then
-        eval `/usr/libexec/path_helper -s`
-        PATH="@mssdir@/bin:${PATH}"
-    else
-        PATH="@mssdir@/bin:${PATH}"
-        append_path '/usr/local/sbin'
-        append_path '/usr/local/bin'
-        append_path '/usr/bin'
+{% if platform == "Linux" %}
+PATH="{{ prefix }}/bin:${PATH}"
+append_path '/usr/local/sbin'
+append_path '/usr/local/bin'
+append_path '/usr/bin'
+{% elif platform == "Darwin" %}
+if [ -x "/usr/libexec/path_helper" ]; then
+    eval `/usr/libexec/path_helper -s`
+    PATH="{{ prefix }}/bin:${PATH}"
 fi
-
+{% endif %}
 export PATH
 
 # - - don't expose - - #
-unset TERMCAP MANPATH _OS_TYPE
+unset TERMCAP
 
 # - - bash specific - - #
 if [ ! -z "${BASH}" ]; then
@@ -41,8 +39,6 @@ if [ ! -z "${BASH}" ]; then
 
         unset i
     fi
-
-    unset append_path
 
     # - - prompts - - #
     _PS1_BASE=" \$? \[\033[1;37m\]\W\[\033[1;31m\]:\[\e[m\] "
@@ -66,7 +62,9 @@ if [ ! -z "${BASH}" ]; then
     HISTSIZE=1000
 fi
 
+unset append_path
+
 # - - otg - - #
-. @mssdir@/etc/sourceme
-. @mssdir@/etc/sourceme-aliases
-. @mssdir@/etc/sourceme-build
+. {{ prefix }}/etc/sourceme
+. {{ prefix }}/etc/sourceme-aliases
+. {{ prefix }}/etc/sourceme-build

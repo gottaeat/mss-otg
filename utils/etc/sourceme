@@ -1,40 +1,35 @@
 # vim: set ft=sh:
 
-# - - otg - - #
-export OTG_IS_LINUX="@is_linux@"
-export OTG_IS_SETBOXES="@is_setboxes@"
-
 # - - essential - - #
-if [ "${OTG_IS_SETBOXES}" -eq 1 ]; then
-    export PATH="${PATH}:/mnt/mss/stuff/techy-bits/bin"
-fi
+{% if is_setboxes %}
+export PATH="${PATH}:/mnt/mss/stuff/techy-bits/bin"
+{% endif %}
 
 export LANG="en_US.UTF-8"
 export PAGER="less"
 export EDITOR="vim"
 export GPG_TTY="$(tty)"
 
+{% if is_setboxes %}
 # - - misc vars - - #
-if [ "${OTG_IS_SETBOXES}" -eq 1 ]; then
-    export MPD_HOST="127.0.0.1"
-    export MOZ_USE_XINPUT2="1"
-    export SAL_USE_VCLPLUGIN="gen"
-    export LIBVIRT_DEFAULT_URI="qemu:///system"
-fi
+export MOZ_USE_XINPUT2="1"
+export SAL_USE_VCLPLUGIN="gen"
+export LIBVIRT_DEFAULT_URI="qemu:///system"
+{% endif %}
 
+{% if platform == "Darwin" %}
 # - - brew - - #
-if [ -f "/opt/homebrew/bin/brew" ]; then
-    eval "$(/opt/homebrew/bin/brew shellenv)"
+eval "$(/opt/homebrew/bin/brew shellenv)"
 
-    BREW_PREFIX="$(brew --prefix)"
-    for bindir in "${BREW_PREFIX}/opt/"*"/libexec/gnubin"; do
-        export PATH="${bindir}:${PATH}"
-    done
+BREW_PREFIX="$(brew --prefix)"
+for bindir in "${BREW_PREFIX}/opt/"*"/libexec/gnubin"; do
+    export PATH="${bindir}:${PATH}"
+done
 
-    for mandir in "${BREW_PREFIX}/opt/"*"/libexec/gnuman"; do
-        export MANPATH="${mandir}:$MANPATH"
-    done
-fi
+for mandir in "${BREW_PREFIX}/opt/"*"/libexec/gnuman"; do
+    export MANPATH="${mandir}:$MANPATH"
+done
+{% endif %}
 
 # - - colors - - #
 c_res="\033[0;39m"
@@ -91,7 +86,7 @@ sesh() {
             . /tmp/ssh_sesh.tmp
         fi
 
-        ssh-add @msshomedir@/.ssh/id_ed25519
+        ssh-add {{ home }}/.ssh/id_ed25519
     fi
 }
 

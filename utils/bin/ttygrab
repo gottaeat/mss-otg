@@ -1,5 +1,5 @@
 #!/bin/sh
-. @mssdir@/etc/funcs
+. {{ prefix }}/etc/funcs
 
 dat="$(date "+%Y%m%d_%H%M%S_ttygrab")"
 loc="/mnt/mss/stuff/personal/screenshots/tty/${dat}.png"

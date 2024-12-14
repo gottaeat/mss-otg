@@ -1,38 +1,36 @@
 # vim: set ft=sh:
+{% if platform != "Linux" or not is_setboxes %}
+. {{ prefix }}/etc/sourceme
+{% endif %}
 
-if [ -z "${OTG_IS_LINUX}" ] || [ -z "${OTG_IS_SETBOXES}" ]; then
-    . @mssdir@/etc/sourceme
-fi
-
+{% if platform == "Linux" %}
 # - - c tooling - - #
-if [ "${OTG_IS_LINUX}" -eq 1 ]; then
-    CPPFLAGS="-DNDEBUG -D_FORTIFY_SOURCE=2"
-    CFLAGS="${CPPFLAGS} -g0 -s -w -pipe -O3 -march=x86-64 -mtune=generic"
-    CFLAGS="${CFLAGS} -fcommon -fstack-protector-strong"
-    CXXFLAGS="${CFLAGS}"
-    LDFLAGS="${CFLAGS} -Wl,--as-needed,--sort-common,-z,relro,-z,now,--gc-sections,-O3"
+CPPFLAGS="-DNDEBUG -D_FORTIFY_SOURCE=2"
+CFLAGS="${CPPFLAGS} -g0 -s -w -pipe -O3 -march=x86-64 -mtune=generic"
+CFLAGS="${CFLAGS} -fcommon -fstack-protector-strong"
+CXXFLAGS="${CFLAGS}"
+LDFLAGS="${CFLAGS} -Wl,--as-needed,--sort-common,-z,relro,-z,now,--gc-sections,-O3"
 
-    export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS
-fi
+export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS
+{% endif %}
 
 # - - build systems - - #
-if [ "${OTG_IS_LINUX}" -eq 1 ];
-    then
-        _NR_PROC="$(nproc)"
-    else
-        _NR_PROC="$(sysctl -n hw.physicalcpu)"
-fi
-
-MAKEFLAGS="-j${_NR_PROC} V=1"
-SAMUFLAGS="-j${_NR_PROC} -v"
-
+MAKEFLAGS="V=1"
+SAMUFLAGS="-v"
+{% if platform == "Linux" %}
+MAKEFLAGS="${MAKEFLAGS} -j$(nproc)"
+SAMUFLAGS="${SAMUFLAGS} -j$(nproc)"
+{% elif platform == "Darwin" %}
+MAKEFLAGS="${MAKEFLAGS} -j$(sysctl -n hw.physicalcpu)"
+SAMUFLAGS="${SAMUFLAGS} -j$(sysctl -n hw.physicalcpu)"
+{% endif %}
 export MAKEFLAGS SAMUFLAGS
 
+{% if platform == "Linux" %}
 # - - host spec - - #
-if [ "${OTG_IS_LINUX}" -eq 1 ]; then
-    CARCH="x86_64"
-    CHOST="${CARCH}-pc-linux-gnu"
-    CBUILD="${CHOST}"
+CARCH="x86_64"
+CHOST="${CARCH}-pc-linux-gnu"
+CBUILD="${CHOST}"
 
-    export CARCH CHOST CBUILD
-fi
+export CARCH CHOST CBUILD
+{% endif %}

@@ -1,8 +1,0 @@
-#!/bin/sh
-if [ ! -L "${DESTDIR}@mssdir@/work" ]; then
-    ln -sf /mnt/mss/stuff/techy-bits/work "${DESTDIR}@mssdir@/work"
-fi
-
-if [ ! -L "${DESTDIR}@mssdir@/repo" ]; then
-    ln -sf /mnt/mss/stuff/techy-bits/git/setboxes "${DESTDIR}@mssdir@/repo"
-fi
