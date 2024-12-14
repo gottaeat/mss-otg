@@ -1,5 +1,5 @@
 #!/bin/sh
-. @mssdir@/etc/funcs
+. {{ prefix }}/etc/funcs
 
 if [ -z "${1}" ]
     then

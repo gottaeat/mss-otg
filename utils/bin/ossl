@@ -1,5 +1,5 @@
 #!/bin/sh
-. @mssdir@/etc/funcs
+. {{ prefix }}/etc/funcs
 
 case "${1}" in
     pass)
