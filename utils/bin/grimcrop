@@ -1,0 +1,13 @@
+#!/bin/sh
+tstamp="$(date "+%Y%m%d_%H%M%S_maimcrop")"
+
+if [ -z "${1}" ]
+    then
+        location="/mnt/mss/stuff/personal/screenshots/grabs/${tstamp}.png"
+    else
+        location="${1}"
+fi
+
+grim -g "$(slurp)" "${location}"
+
+echo "${location}"
