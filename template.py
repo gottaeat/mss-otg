@@ -77,6 +77,12 @@ class TemplateOTG:
         ]
     }
 
+    _SETBOXES_SPECIFIC = {
+        "bin/grimclip",
+        "bin/grimcrop",
+        "bin/grimscrot",
+    }
+
     def __init__(self):
         self.logger = None
         self.context = None
@@ -177,6 +183,11 @@ class TemplateOTG:
                 for path in self._PLATFORM_BLACKLIST[self.context["platform"]]:
                     template_list.remove(path)
 
+        # clean setboxes specific paths
+        if not self.context["is_setboxes"]:
+            for path in self._SETBOXES_SPECIFIC:
+                template_list.remove(path)
+
         # create env
         template_env = jinja2.Environment(
             loader=template_loader,
@@ -224,8 +235,7 @@ class TemplateOTG:
             )
 
     def _fixperms(self):
-        chmod_list = []
-        for root, dirs, files in os.walk("./utils"):
+        for root, _, files in os.walk("./utils"):
             for file in files:
                 file_path = os.path.join(root, file)
 
