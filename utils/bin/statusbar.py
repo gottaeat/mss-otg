@@ -9,8 +9,8 @@ import json
 import os
 import platform
 import re
-import socket
 import ssl
+import subprocess
 import sys
 import time
 import urllib.parse
@@ -21,6 +21,7 @@ import urllib.request
 def get_url(
     url, headers={}, tls_context=None
 ):  # pylint: disable=dangerous-default-value
+
     # set useragent
     headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     headers["User-Agent"] += "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -101,101 +102,10 @@ def get_url(
     return data
 
 
-# - - mpd client - - #
-class MPD:  # pylint: disable=too-few-public-methods
-    def __init__(self, mpd_host, mpd_port):
-        self._address = (socket.gethostbyname(mpd_host), mpd_port)
-
-    def _check_status(self):
-        try:
-            check = socket.socket()
-            check.connect(self._address)
-        except ConnectionRefusedError:
-            return (False, "dead")
-
-        mpd_check = check.recv(1024).decode()
-        if "OK MPD" in mpd_check:
-            status = (True, "alive")
-        else:
-            status = (False, "not MPD")
-
-        check.close()
-        return status
-
-    def _query(self, query):
-        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client.connect(self._address)
-        client.send(query.encode())
-
-        sockfile = client.makefile(mode="r")
-
-        raw = ""
-        while True:
-            line = sockfile.readline()
-
-            if "OK MPD " in line:
-                continue
-            if line == "\r\n":
-                continue
-            if "OK\n" in line:
-                break
-
-            raw += line
-
-        client.close()
-
-        querylist = raw.split("\n")
-        querylist.remove("")
-
-        return querylist
-
-    @staticmethod
-    def _parse(response):
-        final = {}
-        for line in response:
-            data = line.split(":", maxsplit=1)
-            final[data[0]] = data[1].lstrip()
-
-        return final
-
-    def run(self):
-        daemon_status = self._check_status()
-
-        if not daemon_status[0]:
-            return daemon_status[1]
-
-        status = self._parse(self._query("status\n"))
-
-        if status["state"] == "stop":
-            return "idle"
-
-        cursong = self._parse(self._query("currentsong\n"))
-
-        if len(cursong) == 0:
-            return "idle"
-
-        songname = cursong.get("Title", re.sub(r"^.*\/|\.[^.]*$", "", cursong["file"]))
-
-        if len(songname) >= 20:
-            songname = songname[0:17] + "..."
-
-        if status["state"] == "pause":
-            indic = "[#]"
-        else:
-            cur_dur = float(cursong["duration"]) - float(status["elapsed"])
-
-            if cur_dur >= 3600:
-                timeshit = "%H:%M:%S"
-            else:
-                timeshit = "%M:%S"
-
-            indic = f"[{time.strftime(timeshit, time.gmtime(cur_dur))}]"
-
-        return f"{indic} {songname}"
-
-
-def module_mpd():
-    return MPD("localhost", 6600).run()
+def runcmd(args):
+    subprocess.run(
+        args.split(), check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT
+    )
 
 
 # - - scrape modules - - #
@@ -258,10 +168,7 @@ def module_mem():
     with open("/proc/meminfo", "r", encoding="utf-8") as f:
         for line in f.readlines():
             if "MemAvailable" in line:
-                mem_info = f"{int(int(line.split()[1]) / 1024)}m"
-                break
-
-    return mem_info
+                return f"{int(int(line.split()[1]) / 1024)}m"
 
 
 def module_temp():
@@ -287,24 +194,6 @@ def module_temp():
             return f"{int(int(f.read()) / 1000)}c"
 
     return "no tempfile"
-
-
-def module_ibmfan():
-    rpm, level = "", ""
-    with open(IBMFAN_PATH, "r", encoding="utf-8") as f:
-        for line in f.readlines():
-            if "speed:" in line:
-                rpm = line.split()[1]
-            if "level:" in line:
-                level = line.split()[1]
-
-    if level == "disengaged":
-        level = "d"
-
-    if level == "auto":
-        level = "a"
-
-    return f"{rpm}/{level}"
 
 
 def module_battery():
@@ -374,7 +263,6 @@ def module_bandwidth():
     return f"{iface} {rx_rate}↓↑{tx_rate} [{rx_total}+{tx_total}]"
 
 
-# - - misc modules - - #
 def module_date():
     return time.strftime("%a %d %H:%M:%S")
 
@@ -384,19 +272,25 @@ def module_loadavg():
 
 
 # - - handlers - - #
-IBMFAN_PATH = "/proc/acpi/ibm/fan"
 MODULE_LIST = {
-    "mpd": module_mpd,
-    "mgm": module_mgm,
-    "yahoo": module_yahoo,
-    "binance": module_binance,
-    "mem": module_mem,
-    "temp": module_temp,
-    "ibmfan": module_ibmfan,
-    "battery": module_battery,
     "bandwidth": module_bandwidth,
+    "battery": module_battery,
+    "binance": module_binance,
     "date": module_date,
     "loadavg": module_loadavg,
+    "mem": module_mem,
+    "mgm": module_mgm,
+    "temp": module_temp,
+    "yahoo": module_yahoo,
+}
+MODULES_INTERACTIVE = {
+    "date": {
+        "1": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
+        "2": "swaymsg -q exec pavucontrol",
+        "3": "pactl set-source-mute @DEFAULT_SOURCE@ toggle",
+        "4": "pactl set-sink-volume @DEFAULT_SINK@ +5%",
+        "5": "pactl set-sink-volume @DEFAULT_SINK@ -5%",
+    },
 }
 
 
@@ -407,7 +301,6 @@ def handle_tmux():
 
     finprint = f"{p_set} "
     if platform.system() == "Linux":
-        finprint += f"{module_mpd()} {p_block} "
         finprint += f"{module_date()} {p_block} "
         finprint += f"{module_loadavg()} {module_mem()} {p_block} "
         finprint += f"{module_battery()}"
@@ -420,12 +313,21 @@ def handle_tmux():
 def handle_modules(args):
     try:
         if args[0] in MODULE_LIST:
+            # mgm special case
             if args[0] == "mgm":
-                try:
-                    return print(MODULE_LIST["mgm"](args[1]))
-                except IndexError:
+                if not args[1:]:
                     print("mgm module requires an area code")
                     sys.exit(1)
+
+                return print(MODULE_LIST["mgm"](args[1]))
+
+            # i3blocks button action
+            button_action = os.environ.get("BLOCK_BUTTON")
+
+            if button_action and args[0] in MODULES_INTERACTIVE:
+                runcmd(MODULES_INTERACTIVE[args[0]][button_action])
+
+            # action
             return print(MODULE_LIST[args[0]]())
     except IndexError:
         print("must specify a module name")
