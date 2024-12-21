@@ -14,9 +14,6 @@ alias grep="grep --color=auto"
 unset _LS_PATH
 
 {% if is_setboxes %}
-# - - misc - - #
-alias imv="imv -s none"
-
 # - - cd - -#
 alias cde="cd /mnt/mss/externalstuff"
 alias cdg="cd /mnt/mss/stuff/techy-bits/git"
