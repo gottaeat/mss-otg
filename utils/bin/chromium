@@ -15,6 +15,7 @@ if [ -f "/usr/lib/chromium/chromium" ]
             --disk-cache-size=1 \
             --enable-gpu-rasterization \
             --enable-features=VaapiVideoDecode \
+            --ozone-platform=wayland \
             "${@}"
     else
         exec firefox
