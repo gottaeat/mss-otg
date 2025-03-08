@@ -1,21 +1,23 @@
 #!/bin/sh
 export LD_LIBRARY_PATH=/mnt/mss/stuff/techy-bits/lib
 
-if [ -f "/usr/lib/chromium/chromium" ]
-    then
-        exec /usr/lib/chromium/chromium \
-            --animation-duration-scale=0 \
-            --disable-smooth-scrolling \
-            --enable-features=CSSColorSchemeUARendering \
-            --enable-features=WebUIDarkMode \
-            --force-dark-mode \
-            --wm-window-animations-disabled \
-            --no-default-browser-check \
-            --disk-cache-dir=/dev/null \
-            --disk-cache-size=1 \
-            --enable-gpu-rasterization \
-            --enable-features=VaapiVideoDecode \
-            "${@}"
-    else
-        exec firefox
+CHROMIUM_FLAGS="--animation-duration-scale=0 \
+    --disable-smooth-scrolling \
+    --enable-features=CSSColorSchemeUARendering \
+    --enable-features=WebUIDarkMode \
+    --force-dark-mode \
+    --wm-window-animations-disabled \
+    --no-default-browser-check \
+    --disk-cache-dir=/dev/null \
+    --disk-cache-size=1 \
+    --enable-gpu-rasterization \
+    --enable-features=VaapiVideoDecode \
+    --ozone-platform=wayland"
+
+if [ -f "/opt/brave-bin/brave" ]; then
+    exec /opt/brave-bin/brave $CHROMIUM_FLAGS "${@}"
+elif [ -f "/usr/lib/chromium/chromium" ]; then
+    exec /usr/lib/chromium/chromium $CHROMIUM_FLAGS "${@}"
+else
+    exec firefox
 fi
