@@ -73,7 +73,6 @@ class TemplateOTG:
             "bin/setgov",
             "bin/suspendtodisk",
             "bin/ttygrab",
-            "share/multiwg-handler",
         ]
     }
 
