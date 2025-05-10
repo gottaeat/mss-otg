@@ -52,6 +52,10 @@ if [ ! -z "${BASH}" ]; then
 
     PS2=" \[\033[1;37m\]>\[\e[m\] "
 
+    # - - git-prompt.sh - - #
+    . {{ prefix }}/share/git-prompt.sh
+    PS1="\$(__git_ps1 '\[\e[30;43m\] %s \[\e[m\]')${PS1}"
+
     export PS1 PS2
     unset _PS1_BASE
 
