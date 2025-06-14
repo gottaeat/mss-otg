@@ -1,4 +1,3 @@
-utils/etc/sourceme-aliases
 # vim: set ft=sh:
 {% if platform != "Linux" %}
 . {{ prefix }}/etc/sourceme
