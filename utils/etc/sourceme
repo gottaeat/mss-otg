@@ -1,17 +1,13 @@
 # vim: set ft=sh:
 
 # - - essential - - #
-{% if is_setboxes %}
-export PATH="${PATH}:/mnt/mss/stuff/techy-bits/bin"
-{% endif %}
-
 export LANG="en_US.UTF-8"
 export PAGER="less"
 export EDITOR="vim"
 export GPG_TTY="$(tty)"
 
-{% if is_setboxes %}
-# - - setboxes - - #
+{% if wayland %}
+# - - wayland - - #
 export CLUTTER_BACKEND=wayland
 export ELECTRON_OZONE_PLATFORM_HINT=wayland
 export LIBVIRT_DEFAULT_URI="qemu:///system"
@@ -30,12 +26,11 @@ export _JAVA_AWT_WM_NONREPARENTING=1
 # - - brew - - #
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
-BREW_PREFIX="$(brew --prefix)"
-for bindir in "${BREW_PREFIX}/opt/"*"/libexec/gnubin"; do
+for bindir in "/opt/homebrew/opt/"*"/libexec/gnubin"; do
     export PATH="${bindir}:${PATH}"
 done
 
-for mandir in "${BREW_PREFIX}/opt/"*"/libexec/gnuman"; do
+for mandir in "/opt/homebrew/opt/"*"/libexec/gnuman"; do
     export MANPATH="${mandir}:$MANPATH"
 done
 {% endif %}

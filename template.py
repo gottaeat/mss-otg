@@ -67,7 +67,6 @@ class OTGFormatter(logging.Formatter):
 class TemplateOTG:
     _PLATFORM_BLACKLIST = {
         "Darwin": [
-            "bin/chromium",
             "bin/fetch.py",
             "bin/setcake.py",
             "bin/setgov",
@@ -76,7 +75,8 @@ class TemplateOTG:
         ]
     }
 
-    _SETBOXES_SPECIFIC = {
+    _WAYLAND_SPECIFIC = {
+        "bin/chromium",
         "bin/grimclip",
         "bin/grimcrop",
         "bin/grimscrot",
@@ -112,43 +112,70 @@ class TemplateOTG:
 
     def _prompt(self):
         # fmt: off
-        msg  = f'platform         : {self.context["platform"]}\n'
-        msg += f'home directory   : {self.context["home"]}\n'
-        msg += f'install prefix   : {self.context["prefix"]}\n'
-        msg += f'setboxes specific: {self.context["is_setboxes"]}\n'
+        msg  = f'platform      : {self.context["platform"]}\n'
+        msg += f'install prefix: {self.context["prefix"]}\n'
+        msg += f'home directory: {self.context["home"]}\n'
+        msg += f'stuff prefix  : {self.context["stuff_prefix"]}\n'
+        if self.context["platform"] == "Linux":
+            msg += f'wayland       : {self.context["wayland"]}\n'
         # fmt: on
 
         for line in msg.split("\n"):
             self.logger.info(line)
 
     def _parse_args(self):
+        current_platform = platform.system()
+        if current_platform not in ["Linux", "Darwin"]:
+            self.logger.error("%s is not a supported platform", current_platform)
+
+        if current_platform == "Darwin":
+            default_home = "/Users/jackass"
+            default_stuff_prefix = "/Users/jackass/stuff"
+        else:
+            default_home = "/home/mss"
+            default_stuff_prefix = "/mnt/mss/stuff"
+
         parser = argparse.ArgumentParser(description="OTG templater")
         parser.add_argument(
             "--prefix",
             type=str,
             help="installation prefix",
-            default="/opt/mss",
+            default="/opt/otg",
         )
         parser.add_argument(
             "--home",
             type=str,
             help="$HOME of the user",
-            default="/home/mss",
+            default=default_home,
         )
+
+        if current_platform != "Darwin":
+            parser.add_argument(
+                "--wayland",
+                action="store_true",
+                help="enable wayland specific functionality",
+                default=False,
+            )
+
         parser.add_argument(
-            "--setboxes",
-            action="store_true",
-            help="enable gottaeat/setboxes specific functionality",
-            default=False,
+            "--stuff-prefix",
+            type=str,
+            help="path to stuff root",
+            default=default_stuff_prefix,
         )
 
         args = parser.parse_args()
 
+        wayland_enabled = (
+            getattr(args, "wayland", False) if current_platform != "Darwin" else False
+        )
+
         self.context = {
             "prefix": args.prefix,
             "home": args.home,
-            "is_setboxes": args.setboxes,
-            "platform": platform.system(),
+            "wayland": wayland_enabled,
+            "platform": current_platform,
+            "stuff_prefix": args.stuff_prefix,
         }
 
     def _mkdir(self):
@@ -182,9 +209,9 @@ class TemplateOTG:
                 for path in self._PLATFORM_BLACKLIST[self.context["platform"]]:
                     template_list.remove(path)
 
-        # clean setboxes specific paths
-        if not self.context["is_setboxes"]:
-            for path in self._SETBOXES_SPECIFIC:
+        # clean wayland specific paths
+        if not self.context["wayland"]:
+            for path in self._WAYLAND_SPECIFIC:
                 template_list.remove(path)
 
         # create env
@@ -212,17 +239,6 @@ class TemplateOTG:
                 self.logger.exception("template  %s: can't write", dest)
 
     def _symlinks(self):
-        # setboxes symlinks
-        if self.context["is_setboxes"]:
-            self._ln(
-                "/mnt/mss/stuff/techy-bits/git/setboxes",
-                os.path.join(self.context["prefix"], "repo"),
-            )
-            self._ln(
-                "/mnt/mss/stuff/techy-bits/work",
-                os.path.join(self.context["prefix"], "work"),
-            )
-
         # bash-handler symlinks
         bash_handler_symlinks = ["/etc/profile"]
         bash_handler_symlinks.append(

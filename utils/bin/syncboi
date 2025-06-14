@@ -1,2 +1,0 @@
-#!/bin/sh
-eval rsync -4 -a --numeric-ids --delete --progress "$@"
