@@ -1,29 +1,24 @@
 # vim: set ft=sh:
-{% if platform != "Linux" or not is_setboxes %}
+{% if platform != "Linux" %}
 . {{ prefix }}/etc/sourceme
 {% endif %}
 
-{% if platform == "Linux" %}
 # - - c tooling - - #
 CPPFLAGS="-DNDEBUG -D_FORTIFY_SOURCE=2"
-CFLAGS="${CPPFLAGS} -g0 -s -w -pipe -O3 -march=x86-64 -mtune=generic"
+CFLAGS="${CPPFLAGS} -g0 -s -w -pipe -O3"
 CFLAGS="${CFLAGS} -fcommon -fstack-protector-strong"
 CXXFLAGS="${CFLAGS}"
-LDFLAGS="${CFLAGS} -Wl,--as-needed,--sort-common,-z,relro,-z,now,--gc-sections,-O3"
-
-export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS
+{% if platform == "Linux" %}
+export LDFLAGS="${CFLAGS} -Wl,--as-needed,--sort-common,-z,relro,-z,now,--gc-sections,-O3"
 {% endif %}
+export CPPFLAGS CFLAGS CXXFLAGS
 
 # - - build systems - - #
 MAKEFLAGS="V=1"
 SAMUFLAGS="-v"
-{% if platform == "Linux" %}
 MAKEFLAGS="${MAKEFLAGS} -j$(nproc)"
 SAMUFLAGS="${SAMUFLAGS} -j$(nproc)"
-{% elif platform == "Darwin" %}
-MAKEFLAGS="${MAKEFLAGS} -j$(sysctl -n hw.physicalcpu)"
-SAMUFLAGS="${SAMUFLAGS} -j$(sysctl -n hw.physicalcpu)"
-{% endif %}
+
 export MAKEFLAGS SAMUFLAGS
 
 {% if platform == "Linux" %}
